@@ -38,8 +38,9 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 * Checks provided login name and password against the database. This method
 	 * is not part of \OCP\UserInterface but is called by Manager.php of
 	 * Nextcloud if Backend::CHECK_PASSWORD is set.
-	 * @param $loginName
+	 * @param $providedUsername
 	 * @param $providedPassword
+	 * @return bool whether the provided password was correct for provided user
 	 */
 	public function checkPassword($providedUsername, $providedPassword) {
 		$dbHandle = $this->db->getDbHandle();
