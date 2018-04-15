@@ -75,28 +75,29 @@ class Db {
 	 * their absence will be only logged with info severity.
 	 */
 	private function checkAppConfigurationAndLogErrors() {
+		$logContext = ['app' => 'user_backend_sql_raw'];
 		// mandatory keys
 		if (empty($this->appConfiguration)) {
 			$this->logger->critical('The Nextcloud configuration (config/config.php) does not contain the key '
 				. self::CONFIG_KEY . ' which is should contain this apps configuration.');
 		} else {
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_NAME])) {
-				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_NAME));
+				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_NAME), $logContext);
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_USER])) {
-				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_USER));
+				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_USER), $logContext) ;
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_PASSWORD])) {
-				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_PASSWORD));
+				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_PASSWORD), $logContext);
 			}
 			// optional keys
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_HOST])) {
 				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_HOST
-					. ' is not set, defaulting to host ' . self::DEFAULT_DB_HOST);
+					. ' is not set, defaulting to host ' . self::DEFAULT_DB_HOST.'.', $logContext);
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_PORT])) {
 				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_PORT
-					. ' is not set, defaulting to port ' . self::DEFAULT_DB_PORT);
+					. ' is not set, defaulting to port ' . self::DEFAULT_DB_PORT.'.', $logContext);
 			}
 		}
 	}
