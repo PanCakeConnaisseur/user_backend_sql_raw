@@ -12,6 +12,7 @@ class Application extends App {
 		parent::__construct('user_backend_sql_raw', $urlParams);
 
 		$config = $this->getContainer()->getServer()->getConfig();
-		\OC::$server->getUserManager()->registerBackend(new UserBackend($config, new Db($config)));
+		$logger = $this->getContainer()->getServer()->getLogger();
+		\OC::$server->getUserManager()->registerBackend(new UserBackend($config, new Db($logger, $config)));
 	}
 }
