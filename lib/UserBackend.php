@@ -13,7 +13,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function __construct(IConfig $config, Db $db) {
 		$this->config = $config;
-		// Don't get db handle (dbo object) here yes, so that it is only created
+		// Don't get db handle (dbo object) here yet, so that it is only created
 		// when db queries are actually run.
 		$this->db = $db;
 
