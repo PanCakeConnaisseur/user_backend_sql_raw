@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright Copyright (c) 2017 Alexey Abel <dev@abelonline.de>
+ * @copyright Copyright (c) 2018 Alexey Abel <dev@abelonline.de>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -102,6 +102,6 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	public function hasUserListings() {
-		// TODO: Implement hasUserListings() method.
+		return (!empty($this->queryStrings['listAllUsers']));
 	}
 }

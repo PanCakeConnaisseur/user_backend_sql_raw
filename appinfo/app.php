@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright Copyright (c) 2017 Alexey Abel <dev@abelonline.de>
+ * @copyright Copyright (c) 2018 Alexey Abel <dev@abelonline.de>
  *
  * @license GNU AGPL version 3 or any later version
  *
