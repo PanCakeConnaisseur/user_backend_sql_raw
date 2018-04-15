@@ -1,8 +1,8 @@
 # User Backend SQL Raw
-This an app for Nextcloud that allows user management and authentication with arbitrary SQL queries. Only tested with Nextcloud 13. Only PostgreSQL is supported at the moment. This is a first release that only supports password checking.
+This is an app for Nextcloud that offers user management and authentication with arbitrary SQL queries. Only tested with Nextcloud 13. Only PostgreSQL is supported at the moment. This is a first release that only supports password checking.
 
 ## Configuration
-There is no UI for this app. All configuration is done via Nextcloud's system configuration in *config/config.php*. The config key is `user_backend_sql_raw.`
+This app has no user interface. All configuration is done via Nextcloud's system configuration in *config/config.php*. The config key is `user_backend_sql_raw.`
 
     'user_backend_sql_raw' => array (
               'dbHost' => 'localhost',
@@ -22,9 +22,9 @@ You need to configure:
     - *dbHost* is optional and defaults to `localhost`
     - *dbPort* is optional and defaults to `5432`
     - the rest is mandatory
-2. **queries** that this app will use to query the db. This will be passed verbatim to the [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
+2. **queries** that this app will use to query the db. These will be passed verbatim to the [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
 
-The queries use named parameters. You have to use the exact names as shown in the example, e.g. to retrieve a hash for a user `getPasswordHashForUser` will be used. Put your custom SQL query there but use `:username` where you are referring to the username of the user trying to login.
+The queries use named parameters. You have to use the exact names as shown in the example, e.g. to retrieve the hash for a user `getPasswordHashForUser` will be used. Put your custom SQL query there but use `:username` where you are referring to the username of the user trying to login.
 
 ## Queries
 - the query `userExists` should return a boolean. See the example on how to do this properly.
