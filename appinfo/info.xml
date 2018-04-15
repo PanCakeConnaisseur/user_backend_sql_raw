@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>user_backend_sql_raw</id>
+    <name>User Backend Sql Raw</name>
+    <summary>User management and authentication through arbitrary SQL queries</summary>
+    <description><![CDATA[If user_sql does not do it for you, and you want to specify more complex, hand-written SQL for getting usernames or passwords, this is the app for you.]]></description>
+    <version>0.0.1</version>
+    <licence>agpl</licence>
+    <author mail="dev@abelonline.de" >Alexey Abel</author>
+    <namespace>UserBackendSqlRaw</namespace>
+    <category>security</category>
+    <bugs>https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues</bugs>
+    <dependencies>
+        <nextcloud min-version="13" max-version="13"/>
+    </dependencies>
+    <types>
+        <authentication/>
+        <prelogin/>
+    </types>
+</info>
