@@ -41,6 +41,7 @@ class Config {
 	const CONFIG_KEY_QUERIES = 'queries';
 	const CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER = 'getPasswordHashForUser';
 	const CONFIG_KEY_USER_EXISTS = 'userExists';
+	const CONFIG_KEY_GET_USERS = 'getUsers';
 
 	public function __construct(ILogger $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
@@ -96,6 +97,10 @@ class Config {
 	 */
 	public function getQueryUserExists() {
 		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_USER_EXISTS];
+	}
+
+	public function getQueryGetUsers() {
+		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_GET_USERS];
 	}
 
 	/**

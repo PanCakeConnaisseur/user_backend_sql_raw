@@ -73,8 +73,38 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// TODO: Implement deleteUser() method.
 	}
 
-	public function getUsers($search = '', $limit = null, $offset = null) {
-		// TODO: Implement getUsers() method.
+	public function getUsers($searchString = '', $limit = null, $offset = null) {
+		// If the search string contains % or _ these would be interpreted as
+		// wildcards in the LIKE expression. Therefore they will be escaped.
+		$searchString = $this->escapePercentAndUnderscore($searchString);
+
+		$parameterSubstitution['username'] = '%'.$searchString.'%';
+
+		if (is_null($limit)) {
+			$limitSegment = '';
+		} else {
+			$limitSegment = ' LIMIT :limit';
+			$parameterSubstitution['limit'] = $limit;
+		}
+
+		if (is_null($offset)) {
+			$offsetSegment = '';
+		} else {
+			$offsetSegment = ' OFFSET :offset';
+			$parameterSubstitution['offset'] = $offset;
+		}
+
+		$queryFromConfig = $this->config->getQueryGetUsers();
+
+		$finalQuery = '('.$queryFromConfig.')'. $limitSegment . $offsetSegment;
+
+		$statement = $this->db->getDbHandle()->prepare($finalQuery);
+		$statement->execute($parameterSubstitution);
+		// Setting the second parameter to 0 will ensure, that only the first
+		// column is returned.
+		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN,0);
+		return $matchedUsers;
+
 	}
 
 	public function userExists($providedUsername) {
@@ -94,5 +124,15 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function hasUserListings() {
 		// TODO: Implement hasUserListings() method.
+	}
+
+	/**
+	 * Escape % and _ with \.
+	 * needed
+	 * @param $search
+	 * @return string
+	 */
+	private function escapePercentAndUnderscore($search) {
+		return str_replace('%', '\\%', str_replace('_', '\\_', $search));
 	}
 }
