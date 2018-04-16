@@ -22,26 +22,17 @@
 namespace OCA\UserBackendSqlRaw;
 
 use OC\User\Backend;
-use OCP\IConfig;
 
 class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	private $db;
 	private $config;
-	private $queryStrings;
 
-	public function __construct(IConfig $config, Db $db) {
+	public function __construct(Config $config, Db $db) {
 		$this->config = $config;
 		// Don't get db handle (dbo object) here yet, so that it is only created
 		// when db queries are actually run.
 		$this->db = $db;
-
-		$retrievedQueryStrings = $config->getSystemValue('user_backend_sql_raw')['queries'];
-
-		$this->queryStrings = array(
-			'getPasswordHashForUser' => $retrievedQueryStrings['getPasswordHashForUser'],
-			'userExists' => $retrievedQueryStrings['userExists'],
-		);
 	}
 
 	public function getBackendName() {
@@ -63,7 +54,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 */
 	public function checkPassword($providedUsername, $providedPassword) {
 		$dbHandle = $this->db->getDbHandle();
-		$statement = $dbHandle->prepare($this->queryStrings['getPasswordHashForUser']);
+		$statement = $dbHandle->prepare($this->config->getQueryGetPasswordHashForUser());
 		$statement->execute(['username' => $providedUsername]);
 		$retrievedPasswordHash = $statement->fetchColumn();
 
@@ -87,7 +78,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	public function userExists($providedUsername) {
-		$statement = $this->db->getDbHandle()->prepare($this->queryStrings['userExists']);
+		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryUserExists());
 		$statement->execute(['username' => $providedUsername]);
 		$doesUserExist = $statement->fetchColumn();
 		return $doesUserExist;
@@ -102,6 +93,6 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	public function hasUserListings() {
-		return (!empty($this->queryStrings['listAllUsers']));
+		// TODO: Implement hasUserListings() method.
 	}
 }
