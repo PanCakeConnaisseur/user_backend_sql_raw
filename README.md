@@ -7,9 +7,9 @@ This app has no user interface. All configuration is done via Nextcloud's system
     'user_backend_sql_raw' => array (
         'db_host' => 'localhost',
         'db_port' => '5432',
-        'db_name' => '<theNameOfYourUserDatabase>',
-        'db_user' => '<yourUserDatabaseUser>',
-        'db_password' => '<thePasswordforTheDatabaseUser>',
+        'db_name' => 'theNameOfYourUserDatabase',
+        'db_user' => 'yourUserDatabaseUser',
+        'db_password' => 'thePasswordforTheDatabaseUser',
         'queries' => array (
             'get_password_hash_for_user' => 'SELECT password FROM virtual_users_fqda WHERE fqda = :username',
             'user_exists' => 'SELECT EXISTS(SELECT 1 FROM virtual_users_fqda WHERE fqda = :username)',
