@@ -32,16 +32,16 @@ class Config {
 	const DEFAULT_DB_PORT = '5432';
 
 	const CONFIG_KEY = 'user_backend_sql_raw';
-	const CONFIG_KEY_DB_HOST = 'dbHost';
-	const CONFIG_KEY_DB_PORT = 'dbPort';
-	const CONFIG_KEY_DB_NAME = 'dbName';
-	const CONFIG_KEY_DB_USER = 'dbUser';
-	const CONFIG_KEY_DB_PASSWORD = 'dbPassword';
+	const CONFIG_KEY_DB_HOST = 'db_host';
+	const CONFIG_KEY_DB_PORT = 'db_port';
+	const CONFIG_KEY_DB_NAME = 'db_name';
+	const CONFIG_KEY_DB_USER = 'db_user';
+	const CONFIG_KEY_DB_PASSWORD = 'db_password';
 
 	const CONFIG_KEY_QUERIES = 'queries';
-	const CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER = 'getPasswordHashForUser';
-	const CONFIG_KEY_USER_EXISTS = 'userExists';
-	const CONFIG_KEY_GET_USERS = 'getUsers';
+	const CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER = 'get_password_hash_for_user';
+	const CONFIG_KEY_USER_EXISTS = 'user_exists';
+	const CONFIG_KEY_GET_USERS = 'get_users';
 
 	public function __construct(ILogger $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
