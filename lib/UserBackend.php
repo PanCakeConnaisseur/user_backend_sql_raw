@@ -40,7 +40,9 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	public function implementsActions($actions) {
-		return (bool)((Backend::CHECK_PASSWORD
+
+		return (bool)((
+			($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
 			) & $actions);
 	}
 
@@ -134,5 +136,10 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 */
 	private function escapePercentAndUnderscore($input) {
 		return str_replace('%', '\\%', str_replace('_', '\\_', $input));
+	}
+
+	private function queriesForUserLoginAreSet() {
+		return (!empty($this->config->getQueryGetPasswordHashForUser())
+			&& !empty($this->config->getQueryUserExists()));
 	}
 }
