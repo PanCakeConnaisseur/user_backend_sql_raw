@@ -128,11 +128,11 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	/**
 	 * Escape % and _ with \.
-	 * needed
-	 * @param $search
-	 * @return string
+	 *
+	 * @param $search string the input that will be escaped
+	 * @return string input string with % and _ escaped
 	 */
-	private function escapePercentAndUnderscore($search) {
-		return str_replace('%', '\\%', str_replace('_', '\\_', $search));
+	private function escapePercentAndUnderscore($input) {
+		return str_replace('%', '\\%', str_replace('_', '\\_', $input));
 	}
 }
