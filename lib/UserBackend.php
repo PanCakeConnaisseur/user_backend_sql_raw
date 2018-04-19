@@ -49,6 +49,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 				($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
 				| (!empty($this->config->getQuerySetPasswordForUser()) ? Backend::SET_PASSWORD : 0)
 				| (!empty($this->config->getQueryGetDisplayName()) ? Backend::GET_DISPLAYNAME : 0)
+				| (!empty($this->config->getQuerySetDisplayName()) ? Backend::SET_DISPLAYNAME : 0)
 			) & $actions);
 	}
 
@@ -62,6 +63,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 */
 	public function checkPassword($providedUsername, $providedPassword) {
 		$dbHandle = $this->db->getDbHandle();
+
 		$statement = $dbHandle->prepare($this->config->getQueryGetPasswordHashForUser());
 		$statement->execute(['username' => $providedUsername]);
 		$retrievedPasswordHash = $statement->fetchColumn();
@@ -138,6 +140,22 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$displayNames[$matchedUser] = $this->getDisplayName($matchedUser);
 		}
 		return $displayNames;
+	}
+
+	public function setDisplayName($username, $newDisplayName) {
+		$statement = $this->db->getDbHandle()->prepare($this->config->getQuerySetDisplayName());
+		$dbUpdateWasSuccessful = $statement->execute([
+			':username' => $username,
+			':new_display_name' => $newDisplayName]);
+
+		if ($dbUpdateWasSuccessful) {
+			return TRUE;
+		} else {
+			$this->logContext[] = $statement->errorInfo();
+			$this->logger->error('Setting a new display name for username \'' . $username . '\' failed, because the db update failed.' . print_r($statement->errorInfo()),
+				$this->logContext);
+			return FALSE;
+		}
 	}
 
 	public function hasUserListings() {
@@ -244,5 +262,4 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 		return $hashedPassword;
 	}
-
 }

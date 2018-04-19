@@ -19,6 +19,7 @@ This app has no user interface. All configuration is done via Nextcloud's system
     					'set_password_hash_for_user' => 'UPDATE virtual_users SET password_hash = :new_password_hash WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
     					'delete_user' => 'DELETE FROM virtual_users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
     					'get_display_name' => 'SELECT display_name FROM virtual_users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
+    					'set_display_name' => 'UPDATE virtual_users SET display_name  = :new_display_name WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
     				),
     			'hash_algorithm_for_new_passwords' => '',
     		),
