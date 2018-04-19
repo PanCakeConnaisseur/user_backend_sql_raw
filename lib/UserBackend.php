@@ -51,6 +51,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 				| (!empty($this->config->getQueryGetDisplayName()) ? Backend::GET_DISPLAYNAME : 0)
 				| (!empty($this->config->getQuerySetDisplayName()) ? Backend::SET_DISPLAYNAME : 0)
 				| (!empty($this->config->getQueryCountUsers()) ? Backend::COUNT_USERS : 0)
+				| (!empty($this->config->getQueryGetHome()) ? Backend::GET_HOME : 0)
 			) & $actions);
 	}
 
@@ -207,6 +208,13 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$statement = $this->db->getDbHandle()->query($this->config->getQueryCountUsers());
 		$userCount =  $statement->fetchColumn();
 		return $userCount;
+	}
+
+	public function getHome($providedUsername) {
+		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryGetHome());
+		$statement->execute(['username' => $providedUsername]);
+		$retrievedHome = $statement->fetchColumn();
+		return $retrievedHome;
 	}
 
 	/**

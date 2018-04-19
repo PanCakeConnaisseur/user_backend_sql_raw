@@ -48,6 +48,7 @@ class Config {
 	const CONFIG_KEY_GET_DISPLAY_NAME = 'get_display_name';
 	const CONFIG_KEY_SET_DISPLAY_NAME = 'set_display_name';
 	const CONFIG_KEY_COUNT_USERS = 'count_users';
+	const CONFIG_KEY_GET_HOME = 'get_home';
 
 	public function __construct(ILogger $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
@@ -135,6 +136,10 @@ class Config {
 
 	public function getQueryCountUsers() {
 		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_COUNT_USERS];
+	}
+
+	public function getQueryGetHome() {
+		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_GET_HOME];
 	}
 
 	/**

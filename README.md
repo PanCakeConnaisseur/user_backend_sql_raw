@@ -21,6 +21,7 @@ This app has no user interface. All configuration is done via Nextcloud's system
     					'get_display_name' => 'SELECT display_name FROM virtual_users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
     					'set_display_name' => 'UPDATE virtual_users SET display_name  = :new_display_name WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
     					'count_users' => 'SELECT COUNT (*) FROM virtual_users',
+    					'get_home' => 'SELECT home_folder FROM users WHERE username = :username',
     				),
     			'hash_algorithm_for_new_passwords' => '',
     		),
@@ -41,6 +42,4 @@ There are three types of configuration parameters
 - `get_users` is a query that searches for users and does pattern matching, therefore it should contain a `ILIKE` (`I` for case insensitive)
     - must not already have a `LIMIT` or `OFFSET`. They will be added by the app at the and of the query by the app
     - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) necessary because of how prepared statements work.
-    
-#### Which queries do I need to provide for what?
 - For user authentication (i.e. login) you need at least `get_password_hash_for_user` and `user_exists`.
