@@ -132,7 +132,10 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	public function hasUserListings() {
-		// TODO: Implement hasUserListings() method.
+		// There is no documentation or example code that actually uses this
+		// method. It is assumed that listing is available if users can be
+		// searched for without specifying any filters.
+		return !empty($this->config->getQueryGetUsers());
 	}
 
 	public function setPassword($username, $password) {
