@@ -21,8 +21,8 @@
 
 namespace OCA\UserBackendSqlRaw;
 
-use \OCP\IConfig;
 use OCP\ILogger;
+use \OCP\IConfig;
 
 class Config {
 	private $logger;
@@ -37,11 +37,13 @@ class Config {
 	const CONFIG_KEY_DB_NAME = 'db_name';
 	const CONFIG_KEY_DB_USER = 'db_user';
 	const CONFIG_KEY_DB_PASSWORD = 'db_password';
+	const CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'hash_algorithm_for_new_passwords';
 
 	const CONFIG_KEY_QUERIES = 'queries';
 	const CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER = 'get_password_hash_for_user';
 	const CONFIG_KEY_USER_EXISTS = 'user_exists';
 	const CONFIG_KEY_GET_USERS = 'get_users';
+	const CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER = 'set_password_hash_for_user';
 
 	public function __construct(ILogger $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
@@ -86,6 +88,14 @@ class Config {
 	}
 
 	/**
+	 * @return string hash algorithm to be used for password generation
+	 */
+	public function getHashAlgorithm() {
+		return $this->appConfiguration[self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS];
+	}
+
+
+	/**
 	 * @return string SQL query for retrieving a password hash of a user
 	 */
 	public function getQueryGetPasswordHashForUser() {
@@ -101,6 +111,10 @@ class Config {
 
 	public function getQueryGetUsers() {
 		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_GET_USERS];
+	}
+
+	public function getQuerySetPasswordForUser() {
+		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER];
 	}
 
 	/**
@@ -133,6 +147,16 @@ class Config {
 				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_PORT
 					. ' is not set, defaulting to port ' . self::DEFAULT_DB_PORT . '.', $logContext);
 			}
+
+			// keys prone to typos
+			if (!empty($this->getHashAlgorithm())
+				&& !$this->hashAlgorithmIsSupported($this->getHashAlgorithm())) {
+				$this->logger->critical('The config key ' . self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
+					. ' contains an invalid value.  Only md5, sha256 and sha512 are supported.', $logContext);
+
+			}
+
+
 		}
 	}
 
@@ -144,5 +168,12 @@ class Config {
 	private function errorMessageForMandatorySubkey($subkeyName) {
 		return 'The config key ' . $subkeyName . ' is not set. Add it to config/config.php as a subkey of '
 			. self::CONFIG_KEY . '.';
+	}
+
+	private function hashAlgorithmIsSupported($hashAlgorithm) {
+		$normalized = strtolower(preg_replace("/[-_]/", "", $hashAlgorithm));
+		return $normalized === 'md5'
+			|| $normalized === 'sha256'
+			|| $normalized === 'sha512';
 	}
 }

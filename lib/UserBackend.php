@@ -21,14 +21,18 @@
 
 namespace OCA\UserBackendSqlRaw;
 
+use OCP\ILogger;
 use OC\User\Backend;
 
 class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
-	private $db;
+	private $logger;
+	private $logContext = ['app' => 'user_backend_sql_raw'];
 	private $config;
+	private $db;
 
-	public function __construct(Config $config, Db $db) {
+	public function __construct(ILogger $logger, Config $config, Db $db) {
+		$this->logger = $logger;
 		$this->config = $config;
 		// Don't get db handle (dbo object) here yet, so that it is only created
 		// when db queries are actually run.
@@ -42,7 +46,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	public function implementsActions($actions) {
 
 		return (bool)((
-			($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
+				($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
+				| (!empty($this->config->getQuerySetPasswordForUser()) ? Backend::SET_PASSWORD : 0)
 			) & $actions);
 	}
 
@@ -80,7 +85,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// wildcards in the LIKE expression. Therefore they will be escaped.
 		$searchString = $this->escapePercentAndUnderscore($searchString);
 
-		$parameterSubstitution['username'] = '%'.$searchString.'%';
+		$parameterSubstitution['username'] = '%' . $searchString . '%';
 
 		if (is_null($limit)) {
 			$limitSegment = '';
@@ -98,13 +103,13 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 		$queryFromConfig = $this->config->getQueryGetUsers();
 
-		$finalQuery = '('.$queryFromConfig.')'. $limitSegment . $offsetSegment;
+		$finalQuery = '(' . $queryFromConfig . ')' . $limitSegment . $offsetSegment;
 
 		$statement = $this->db->getDbHandle()->prepare($finalQuery);
 		$statement->execute($parameterSubstitution);
 		// Setting the second parameter to 0 will ensure, that only the first
 		// column is returned.
-		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN,0);
+		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
 		return $matchedUsers;
 
 	}
@@ -128,6 +133,35 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// TODO: Implement hasUserListings() method.
 	}
 
+	public function setPassword($username, $password) {
+		if (!$this->userExists($username)) {
+			return FALSE;
+		}
+
+		$hashedPassword = '';
+		// By default strong brypt hashing will be used but if the user specified
+		// Config::CONFIG_KEY_HASH_ALGORITHM then it will be used instead. This
+		// enables support for older software that does not understand bcrypt.
+		if (empty($this->config->getHashAlgorithm())) {
+			$hashedPassword = $this->createBcryptHash($password);
+		} else {
+			$hashedPassword = $this->createOtherHash($password);
+		}
+
+		$statement = $this->db->getDbHandle()->prepare($this->config->getQuerySetPasswordForUser());
+		$dbUpdateWasSuccessful = $statement->execute([
+			':username' => $username,
+			':new_password_hash' => $hashedPassword]);
+
+		if ($dbUpdateWasSuccessful) {
+			return TRUE;
+		} else {
+			$this->logger->error('Setting a new password for username \'' . $username . '\' failed, because the db update failed.',
+				$this->logContext);
+			return FALSE;
+		}
+	}
+
 	/**
 	 * Escape % and _ with \.
 	 *
@@ -138,8 +172,63 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		return str_replace('%', '\\%', str_replace('_', '\\_', $input));
 	}
 
+	/**
+	 * @return bool whether configuration contains a query for getting a
+	 * password hash and a query to check if a user exists
+	 */
 	private function queriesForUserLoginAreSet() {
 		return (!empty($this->config->getQueryGetPasswordHashForUser())
 			&& !empty($this->config->getQueryUserExists()));
 	}
+
+	/**
+	 * @param $password string the password to hash
+	 * @return bool|string the hashed password or FALSE on failure
+	 */
+	private function createBcryptHash($password) {
+		// Set the password hash type (PASSWORD_BCRYPT) explicitly so that
+		// it does not change in future PHP versions. Other software using the
+		// user db might not be able to read a newer hash string.
+		$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+		if ($hashedPassword === FALSE) {
+			$this->logger->error('Setting a new password failed, because the hashing function failed.',
+				$this->logContext);
+			return FALSE;
+		}
+
+		return $hashedPassword;
+	}
+
+	/**
+	 * Creates hashes using MD5-CRYPT, SHA-256-CRYPT or SHA-512-CRYPT
+	 * @param $password string the password to hash
+	 * @return bool|string the hashed password or FALSE on failure
+	 */
+	private function createOtherHash($password) {
+		$salt = base64_encode(random_bytes(8));
+		$hashedPassword = FALSE;
+
+		if ($this->config->getHashAlgorithm() === 'sha512') {
+			$hashedPassword = crypt($password, '$6$' . $salt . '$');
+		}
+
+		if ($this->config->getHashAlgorithm() === 'sha256') {
+			$hashedPassword = crypt($password, '$5$' . $salt . '$');
+		}
+
+		if ($this->config->getHashAlgorithm() === 'md5') {
+			$hashedPassword = crypt($password, '$1$' . $salt . '$');
+		}
+
+		// if crypt() fails the returned string will be FALSE or shorter than 13
+		// characters, see http://php.net/manual/en/function.crypt.php
+		if ($hashedPassword === FALSE || strlen($hashedPassword) < 13) {
+			$this->logger->error('Setting a new password failed, because the hashing function failed.',
+				$this->logContext);
+			return FALSE;
+		}
+
+		return $hashedPassword;
+	}
+
 }

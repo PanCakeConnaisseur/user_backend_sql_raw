@@ -5,7 +5,7 @@
     <name>User Backend Sql Raw</name>
     <summary>User management and authentication through arbitrary SQL queries</summary>
     <description><![CDATA[If user_sql does not do it for you, and you want to specify more complex, hand-written SQL for getting usernames or passwords, this is the app for you.]]></description>
-    <version>0.0.1</version>
+    <version>0.3</version>
     <licence>agpl</licence>
     <author mail="dev@abelonline.de" >Alexey Abel</author>
     <namespace>UserBackendSqlRaw</namespace>
