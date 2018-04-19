@@ -76,8 +76,10 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		}
 	}
 
-	public function deleteUser($uid) {
-		// TODO: Implement deleteUser() method.
+	public function deleteUser($providedUsername) {
+		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryDeleteUser());
+		$wasUserDeleted = $statement->execute(['username' => $providedUsername]);
+		return $wasUserDeleted;
 	}
 
 	public function getUsers($searchString = '', $limit = null, $offset = null) {
