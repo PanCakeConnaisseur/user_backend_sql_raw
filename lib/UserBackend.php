@@ -50,6 +50,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 				| (!empty($this->config->getQuerySetPasswordForUser()) ? Backend::SET_PASSWORD : 0)
 				| (!empty($this->config->getQueryGetDisplayName()) ? Backend::GET_DISPLAYNAME : 0)
 				| (!empty($this->config->getQuerySetDisplayName()) ? Backend::SET_DISPLAYNAME : 0)
+				| (!empty($this->config->getQueryCountUsers()) ? Backend::COUNT_USERS : 0)
 			) & $actions);
 	}
 
@@ -200,6 +201,12 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 				$this->logContext);
 			return FALSE;
 		}
+	}
+
+	public function countUsers() {
+		$statement = $this->db->getDbHandle()->query($this->config->getQueryCountUsers());
+		$userCount =  $statement->fetchColumn();
+		return $userCount;
 	}
 
 	/**
