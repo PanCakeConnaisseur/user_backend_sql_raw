@@ -1,5 +1,5 @@
 # User Backend SQL Raw
-This is an app for Nextcloud that offers user management and authentication with arbitrary SQL queries. Only tested with Nextcloud 13. Only PostgreSQL is supported at the moment. This is a first release that only supports password checking.
+This is an app for Nextcloud that offers user management and authentication with arbitrary SQL queries. Only tested with Nextcloud 13. Only PostgreSQL is supported at the moment.
 
 ## Configuration
 This app has no user interface. All configuration is done via Nextcloud's system configuration in *config/config.php*. The config key is `user_backend_sql_raw.`
