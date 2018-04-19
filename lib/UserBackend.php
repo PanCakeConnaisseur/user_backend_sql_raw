@@ -48,6 +48,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		return (bool)((
 				($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
 				| (!empty($this->config->getQuerySetPasswordForUser()) ? Backend::SET_PASSWORD : 0)
+				| (!empty($this->config->getQueryGetDisplayName()) ? Backend::GET_DISPLAYNAME : 0)
 			) & $actions);
 	}
 
@@ -123,12 +124,20 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		return $doesUserExist;
 	}
 
-	public function getDisplayName($uid) {
-		// TODO: Implement getDisplayName() method.
+	public function getDisplayName($providedUsername) {
+		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryGetDisplayName());
+		$statement->execute(['username' => $providedUsername]);
+		$retrievedDisplayName = $statement->fetchColumn();
+		return $retrievedDisplayName;
 	}
 
 	public function getDisplayNames($search = '', $limit = null, $offset = null) {
-		// TODO: Implement getDisplayNames() method.
+		$matchedUsers = $this->getUsers($search, $limit, $offset);
+		$displayNames = array();
+		foreach ($matchedUsers as $matchedUser) {
+			$displayNames[$matchedUser] = $this->getDisplayName($matchedUser);
+		}
+		return $displayNames;
 	}
 
 	public function hasUserListings() {

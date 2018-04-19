@@ -45,6 +45,7 @@ class Config {
 	const CONFIG_KEY_GET_USERS = 'get_users';
 	const CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER = 'set_password_hash_for_user';
 	const CONFIG_KEY_DELETE_USER = 'delete_user';
+	const CONFIG_KEY_GET_DISPLAY_NAME = 'get_display_name';
 
 	public function __construct(ILogger $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
@@ -120,6 +121,10 @@ class Config {
 
 	public function getQueryDeleteUser() {
 		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_DELETE_USER];
+	}
+
+	public function getQueryGetDisplayName() {
+		return $this->appConfiguration[self::CONFIG_KEY_QUERIES][self::CONFIG_KEY_GET_DISPLAY_NAME];
 	}
 
 	/**
