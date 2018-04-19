@@ -63,6 +63,9 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 */
 	public function checkPassword($providedUsername, $providedPassword) {
 		$dbHandle = $this->db->getDbHandle();
+		// Don't throw exceptions on db errors because this could leak passwords
+		// to logs.
+		$dbHandle = $dbHandle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);
 
 		$statement = $dbHandle->prepare($this->config->getQueryGetPasswordHashForUser());
 		$statement->execute(['username' => $providedUsername]);
@@ -180,7 +183,12 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$hashedPassword = $this->createOtherHash($password);
 		}
 
-		$statement = $this->db->getDbHandle()->prepare($this->config->getQuerySetPasswordForUser());
+		$dbHandle = $this->db->getDbHandle();
+		// Don't throw exceptions on db errors because this could leak passwords
+		// to logs.
+		$dbHandle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);
+		$statement = $dbHandle->prepare($this->config->getQuerySetPasswordForUser());
+
 		$dbUpdateWasSuccessful = $statement->execute([
 			':username' => $username,
 			':new_password_hash' => $hashedPassword]);

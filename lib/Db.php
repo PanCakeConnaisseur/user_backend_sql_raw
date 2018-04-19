@@ -38,6 +38,8 @@ class Db {
 	public function getDbHandle() {
 		$dsn = $this->assembleDsnForPostgresql();
 		$dbHandle = new PDO($dsn);
+		$dbHandle->setAttribute(PDO::ATTR_EMULATE_PREPARES, FALSE);
+		$dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		return $dbHandle;
 	}
 
