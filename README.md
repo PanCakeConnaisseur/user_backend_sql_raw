@@ -31,7 +31,7 @@ There are three types of configuration parameters
     - This one is optional. By default bcrypt ($2y$) will be used. If all systems using your user db understand bcrypt, you don't need to set this parameter. It only sets the hash algorithm used for creation of new passwords. For checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php) and all common crypt format are recognized. Only override this, if you have an older system using your database. Only MD5-CRYPT, SHA-256-CRYPT and SHA-512-CRYPT are supported. The config values are `md5`, `sha256` or `sha512` respectively, e.g. `'hash_algorithm' => 'sha512'`.
 
 ### Queries
-- The queries use named parameters. You have to use the exact names as shown in the examples. For example to retrieve the hash for a user the query named `get_password_hash_for_user` will be used. Adjust it to your cusotm SQL query and simply put `:username` where you are referring to the username of the user trying to login.
+- The queries use named parameters. You have to use the exact names as shown in the examples. For example to retrieve the hash for a user the query named `get_password_hash_for_user` will be used. Adjust it to your custom SQL query and simply put `:username` where you are referring to the username of the user trying to login.
 - All queries must return at most one column (but most queries use only the first anyway)
 - `user_exists` should return a boolean. See the example on how to do this properly.
 - `get_users` is a query that searches for users and does pattern matching, therefore it should contain a `ILIKE` (`I` for case insensitive)

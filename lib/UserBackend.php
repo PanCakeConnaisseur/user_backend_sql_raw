@@ -138,10 +138,10 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return FALSE;
 		}
 
-		$hashedPassword = '';
-		// By default strong brypt hashing will be used but if the user specified
-		// Config::CONFIG_KEY_HASH_ALGORITHM then it will be used instead. This
-		// enables support for older software that does not understand bcrypt.
+		// By default strong bcrypt hashing will be used but if the user
+		// specified Config::CONFIG_KEY_HASH_ALGORITHM then that will be used
+		// instead. This enables support for older software that does not
+		// understand bcrypt.
 		if (empty($this->config->getHashAlgorithm())) {
 			$hashedPassword = $this->createBcryptHash($password);
 		} else {
@@ -165,7 +165,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	/**
 	 * Escape % and _ with \.
 	 *
-	 * @param $search string the input that will be escaped
+	 * @param $input string the input that will be escaped
 	 * @return string input string with % and _ escaped
 	 */
 	private function escapePercentAndUnderscore($input) {
