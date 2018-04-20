@@ -5,7 +5,7 @@
     <name>User Backend Sql Raw</name>
     <summary>User management and authentication through arbitrary SQL queries</summary>
     <description><![CDATA[This app defines a user backend with which you can authenticate, create and delete users, change their password and everything else that Nextcloud allows you to do with users. In contrast to the app *user_sql*, you write the SQL queries yourself. This enables you to use almost any db scheme you might have. You are not bound by assumptions about your db structure that the app authors made. The app uses prepared statements and is written to be secure by default so SQL injections are practically impossible. At the moment only PostgreSQL is supported.]]></description>
-    <version>0.4</version>
+    <version>0.9.0</version>
     <licence>agpl</licence>
     <author mail="dev@abelonline.de" >Alexey Abel</author>
     <namespace>UserBackendSqlRaw</namespace>
