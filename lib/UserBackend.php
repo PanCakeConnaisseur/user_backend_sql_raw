@@ -248,7 +248,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// specified Config::CONFIG_KEY_HASH_ALGORITHM then this will be used
 		// instead. This enables support for older software that does not
 		// understand bcrypt.
-		if (empty($this->config->getHashAlgorithm())) {
+		if (empty($this->config->getHashAlgorithmForNewPasswords())) {
 			return $this->hashWithBcrypt($password);
 		} else {
 			return $this->hashWithOther($password);
@@ -283,26 +283,23 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	private function hashWithOther($password) {
 		$salt = base64_encode(random_bytes(8));
 		$hashedPassword = FALSE;
-		$hashFunctionFromConfig = $this->config->getHashAlgorithm();
+
+		$hashFunctionFromConfig = $this->config->getHashAlgorithmForNewPasswords();
 
 		if ($hashFunctionFromConfig === 'sha512') {
 			$hashedPassword = crypt($password, '$6$' . $salt . '$');
-		}
-
-		if ($hashFunctionFromConfig === 'sha256') {
+		} elseif ($hashFunctionFromConfig === 'sha256') {
 			$hashedPassword = crypt($password, '$5$' . $salt . '$');
-		}
-
-		if ($hashFunctionFromConfig === 'md5') {
+		} elseif ($hashFunctionFromConfig === 'md5') {
 			$hashedPassword = crypt($password, '$1$' . $salt . '$');
 		}
 
-		// if crypt() fails the returned string will be FALSE or shorter than 13
-		// characters, see http://php.net/manual/en/function.crypt.php
+		// If crypt() fails the returned string will be FALSE or shorter than 13
+		// characters, see http://php.net/manual/en/function.crypt.php.
 		if ($hashedPassword === FALSE || strlen($hashedPassword) < 13) {
 			$this->logger->error('Setting a new password failed,'
-				.' because the hashing function '.$hashFunctionFromConfig
-				.' failed.', $this->logContext);
+				. ' because the hashing function ' . $hashFunctionFromConfig
+				. ' failed.', $this->logContext);
 			return FALSE;
 		}
 		return $hashedPassword;

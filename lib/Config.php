@@ -96,7 +96,7 @@ class Config {
 	/**
 	 * @return string hash algorithm to be used for password generation
 	 */
-	public function getHashAlgorithm() {
+	public function getHashAlgorithmForNewPasswords() {
 		return $this->appConfiguration[self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS];
 	}
 
@@ -179,8 +179,8 @@ class Config {
 			}
 
 			// keys prone to typos
-			if (!empty($this->getHashAlgorithm())
-				&& !$this->hashAlgorithmIsSupported($this->getHashAlgorithm())) {
+			if (!empty($this->getHashAlgorithmForNewPasswords())
+				&& !$this->hashAlgorithmIsSupported($this->getHashAlgorithmForNewPasswords())) {
 				$this->logger->critical('The config key ' . self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
 					. ' contains an invalid value.  Only md5, sha256 and sha512 are supported.', $logContext);
 
