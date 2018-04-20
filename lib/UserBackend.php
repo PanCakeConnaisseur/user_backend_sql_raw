@@ -159,11 +159,9 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
 		} else {
-			$this->logContext[] = $statement->errorInfo();
 			$this->logger->error('Setting a new display name for username \''
 				. $username . '\' failed, because the db update failed.'
-				. print_r($statement->errorInfo()),
-				$this->logContext);
+				, $this->logContext);
 			return FALSE;
 		}
 	}
