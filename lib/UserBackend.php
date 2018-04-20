@@ -283,27 +283,28 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	private function hashWithOther($password) {
 		$salt = base64_encode(random_bytes(8));
 		$hashedPassword = FALSE;
+		$hashFunctionFromConfig = $this->config->getHashAlgorithm();
 
-		if ($this->config->getHashAlgorithm() === 'sha512') {
+		if ($hashFunctionFromConfig === 'sha512') {
 			$hashedPassword = crypt($password, '$6$' . $salt . '$');
 		}
 
-		if ($this->config->getHashAlgorithm() === 'sha256') {
+		if ($hashFunctionFromConfig === 'sha256') {
 			$hashedPassword = crypt($password, '$5$' . $salt . '$');
 		}
 
-		if ($this->config->getHashAlgorithm() === 'md5') {
+		if ($hashFunctionFromConfig === 'md5') {
 			$hashedPassword = crypt($password, '$1$' . $salt . '$');
 		}
 
 		// if crypt() fails the returned string will be FALSE or shorter than 13
 		// characters, see http://php.net/manual/en/function.crypt.php
 		if ($hashedPassword === FALSE || strlen($hashedPassword) < 13) {
-			$this->logger->error('Setting a new password failed, because the hashing function failed.',
-				$this->logContext);
+			$this->logger->error('Setting a new password failed,'
+				.' because the hashing function '.$hashFunctionFromConfig
+				.' failed.', $this->logContext);
 			return FALSE;
 		}
-
 		return $hashedPassword;
 	}
 }
