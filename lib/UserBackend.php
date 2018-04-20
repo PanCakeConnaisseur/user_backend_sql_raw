@@ -65,6 +65,11 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 * @return bool whether the provided password was correct for provided user
 	 */
 	public function checkPassword($providedUsername, $providedPassword) {
+		// prevent denial of service
+		if (strlen($providedPassword) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
+			return FALSE;
+		}
+
 		$dbHandle = $this->db->getDbHandle();
 
 		$statement = $dbHandle->prepare($this->config->getQueryGetPasswordHashForUser());
@@ -169,6 +174,16 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	public function setPassword($username, $password) {
+		// prevent denial of service
+		if (strlen($password) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
+			$this->logger->error('Setting a new password for \''
+				. $username . '\' was rejected because it is longer than '
+				.Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH.' characters. This is '
+				.'to prevent denial of service attacks against the serve.',
+				$this->logContext);
+			return FALSE;
+		}
+
 		if (!$this->userExists($username)) {
 			return FALSE;
 		}
@@ -186,7 +201,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
 		} else {
-			$this->logger->error('Setting a new password for username \'' . $username . '\' failed, because the db update failed.',
+			$this->logger->error('Setting a new password for username \'' . $username
+				. '\' failed, because the db update failed.',
 				$this->logContext);
 			return FALSE;
 		}
@@ -207,6 +223,11 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 
 	public function createUser($providedUsername, $providedPassword) {
+		// prevent denial of service
+		if (strlen($providedPassword) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
+			return FALSE;
+		}
+
 		$dbHandle = $this->db->getDbHandle();
 
 		$statement = $dbHandle->prepare($this->config->getQueryCreateUser());

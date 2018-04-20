@@ -30,6 +30,7 @@ class Config {
 
 	const DEFAULT_DB_HOST = 'localhost';
 	const DEFAULT_DB_PORT = '5432';
+	const MAXIMUM_ALLOWED_PASSWORD_LENGTH = 100;
 
 	const CONFIG_KEY = 'user_backend_sql_raw';
 	const CONFIG_KEY_DB_HOST = 'db_host';

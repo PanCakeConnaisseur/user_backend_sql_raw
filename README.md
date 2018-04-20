@@ -32,7 +32,8 @@ There are three types of configuration parameters
     - *db_host* is optional and defaults to `localhost`
     - *db_port* is optional and defaults to `5432`
     - the rest is mandatory
-2. **queries** that this app will use to query the db. These will be passed verbatim to the [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
+2. **queries** that this app will use to query the db. These will be passed verbatim to the
+ [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
 3. **hash algorithm** (`hash_algorithm_for_new_passwords`) used for creation of new passwords
     - This one is optional. By default, if you leave the parameter empty, bcrypt ($2y$) will be used. This parameter only sets the hash algorithm used for the creation of new passwords. For checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php) and all common crypt formats are recognized. So you should set this parameter if your user db is used by software that does not support bcrypt. The other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT and SHA-512-CRYPT. The config values are `md5`, `sha256` an `sha512` respectively, e.g. `'hash_algorithm_for_new_passwords' => 'sha512',`.
 
@@ -44,3 +45,10 @@ There are three types of configuration parameters
     - must not already have a `LIMIT` or `OFFSET`. They will be added by the app at the and of the query by the app
     - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) necessary because of how prepared statements work.
 - For user authentication (i.e. login) you need at least `get_password_hash_for_user` and `user_exists`.
+
+## Security
+- Password length is limited to 100 characters to prevent denial of service attacks against the 
+webserver. Otherwise users can supply passwords with 10000 or more characters which can cause a very
+ high load for the server when they are run through hashing functions.
+- The username during user creation (`create_user`) and the display name (`set_display_name`) are
+ not limited in length. You should limit this on the db layer.
