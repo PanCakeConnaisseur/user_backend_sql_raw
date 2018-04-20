@@ -40,6 +40,12 @@ class Db {
 		$dbHandle = new PDO($dsn);
 		$dbHandle->setAttribute(PDO::ATTR_EMULATE_PREPARES, FALSE);
 		$dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		// Some methods of the backend are called by Nextcloud in a way that
+		// suppresses exceptions, probably to avoid leaking passwords to log
+		// files. Therefore it is not necessary to change PDO::ATTR_ERRMODE for
+		// these manually. These methods are (as of Nextcloud 13.0.1):
+		// createUser(). But not setPassword(). Because checkPassword() only
+		// retrieves the hash it does not suffer from this problem at all.
 		return $dbHandle;
 	}
 

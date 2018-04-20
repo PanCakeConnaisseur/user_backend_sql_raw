@@ -22,6 +22,7 @@ This app has no user interface. All configuration is done via Nextcloud's system
     					'set_display_name' => 'UPDATE virtual_users SET display_name  = :new_display_name WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
     					'count_users' => 'SELECT COUNT (*) FROM virtual_users',
     					'get_home' => 'SELECT home_folder FROM users WHERE username = :username',
+    					'create_user' => 'INSERT INTO virtual_users (local, domain, password_hash) VALUES (split_part(:username, \'@\', 1), split_part(:username, \'@\', 2), :password_hash)',
     				),
     			'hash_algorithm_for_new_passwords' => '',
     		),
@@ -32,8 +33,8 @@ There are three types of configuration parameters
     - *db_port* is optional and defaults to `5432`
     - the rest is mandatory
 2. **queries** that this app will use to query the db. These will be passed verbatim to the [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
-3. **hash algorithm** used for creation of new passwords
-    - This one is optional. By default bcrypt ($2y$) will be used. If all systems using your user db understand bcrypt, you don't need to set this parameter. It only sets the hash algorithm used for creation of new passwords. For checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php) and all common crypt format are recognized. Only override this, if you have an older system using your database. Only MD5-CRYPT, SHA-256-CRYPT and SHA-512-CRYPT are supported. The config values are `md5`, `sha256` or `sha512` respectively, e.g. `'hash_algorithm' => 'sha512'`.
+3. **hash algorithm** (`hash_algorithm_for_new_passwords`) used for creation of new passwords
+    - This one is optional. By default, if you leave the parameter empty, bcrypt ($2y$) will be used. This parameter only sets the hash algorithm used for the creation of new passwords. For checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php) and all common crypt formats are recognized. So you should set this parameter if your user db is used by software that does not support bcrypt. The other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT and SHA-512-CRYPT. The config values are `md5`, `sha256` an `sha512` respectively, e.g. `'hash_algorithm_for_new_passwords' => 'sha512',`.
 
 ### Queries
 - The queries use named parameters. You have to use the exact names as shown in the examples. For example to retrieve the hash for a user the query named `get_password_hash_for_user` will be used. Adjust it to your custom SQL query and simply put `:username` where you are referring to the username of the user trying to login.

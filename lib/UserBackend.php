@@ -46,12 +46,13 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	public function implementsActions($actions) {
 
 		return (bool)((
-				($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
+				(!empty($this->config->getQueryCreateUser()) ? Backend::CREATE_USER : 0)
 				| (!empty($this->config->getQuerySetPasswordForUser()) ? Backend::SET_PASSWORD : 0)
+				| ($this->queriesForUserLoginAreSet() ? Backend::CHECK_PASSWORD : 0)
+				| (!empty($this->config->getQueryGetHome()) ? Backend::GET_HOME : 0)
 				| (!empty($this->config->getQueryGetDisplayName()) ? Backend::GET_DISPLAYNAME : 0)
 				| (!empty($this->config->getQuerySetDisplayName()) ? Backend::SET_DISPLAYNAME : 0)
 				| (!empty($this->config->getQueryCountUsers()) ? Backend::COUNT_USERS : 0)
-				| (!empty($this->config->getQueryGetHome()) ? Backend::GET_HOME : 0)
 			) & $actions);
 	}
 
@@ -65,9 +66,6 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 */
 	public function checkPassword($providedUsername, $providedPassword) {
 		$dbHandle = $this->db->getDbHandle();
-		// Don't throw exceptions on db errors because this could leak passwords
-		// to logs.
-		$dbHandle = $dbHandle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);
 
 		$statement = $dbHandle->prepare($this->config->getQueryGetPasswordHashForUser());
 		$statement->execute(['username' => $providedUsername]);
@@ -175,16 +173,6 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return FALSE;
 		}
 
-		// By default strong bcrypt hashing will be used but if the user
-		// specified Config::CONFIG_KEY_HASH_ALGORITHM then that will be used
-		// instead. This enables support for older software that does not
-		// understand bcrypt.
-		if (empty($this->config->getHashAlgorithm())) {
-			$hashedPassword = $this->createBcryptHash($password);
-		} else {
-			$hashedPassword = $this->createOtherHash($password);
-		}
-
 		$dbHandle = $this->db->getDbHandle();
 		// Don't throw exceptions on db errors because this could leak passwords
 		// to logs.
@@ -193,7 +181,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 		$dbUpdateWasSuccessful = $statement->execute([
 			':username' => $username,
-			':new_password_hash' => $hashedPassword]);
+			':new_password_hash' => $this->hashPassword($password)]);
 
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
@@ -217,6 +205,25 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		return $retrievedHome;
 	}
 
+
+	public function createUser($providedUsername, $providedPassword) {
+		$dbHandle = $this->db->getDbHandle();
+
+		$statement = $dbHandle->prepare($this->config->getQueryCreateUser());
+		$dbUpdateWasSuccessful = $statement->execute([
+			':username' => $providedUsername,
+			':password_hash' => $this->hashPassword($providedPassword)]);
+
+		if ($dbUpdateWasSuccessful) {
+			return TRUE;
+		} else {
+			$this->logger->error('Creating the user with username \'' . $providedUsername . '\' failed, because the db update failed.',
+				$this->logContext);
+			return FALSE;
+
+		}
+	}
+
 	/**
 	 * Escape % and _ with \.
 	 *
@@ -236,11 +243,25 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			&& !empty($this->config->getQueryUserExists()));
 	}
 
+	private function hashPassword($password) {
+		// By default strong bcrypt hashing will be used but if the user
+		// specified Config::CONFIG_KEY_HASH_ALGORITHM then this will be used
+		// instead. This enables support for older software that does not
+		// understand bcrypt.
+		if (empty($this->config->getHashAlgorithm())) {
+			return $this->hashWithBcrypt($password);
+		} else {
+			return $this->hashWithOther($password);
+		}
+	}
+
+
+
 	/**
 	 * @param $password string the password to hash
 	 * @return bool|string the hashed password or FALSE on failure
 	 */
-	private function createBcryptHash($password) {
+	private function hashWithBcrypt($password) {
 		// Set the password hash type (PASSWORD_BCRYPT) explicitly so that
 		// it does not change in future PHP versions. Other software using the
 		// user db might not be able to read a newer hash string.
@@ -259,7 +280,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 * @param $password string the password to hash
 	 * @return bool|string the hashed password or FALSE on failure
 	 */
-	private function createOtherHash($password) {
+	private function hashWithOther($password) {
 		$salt = base64_encode(random_bytes(8));
 		$hashedPassword = FALSE;
 
