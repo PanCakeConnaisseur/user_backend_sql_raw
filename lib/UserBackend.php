@@ -160,7 +160,9 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return TRUE;
 		} else {
 			$this->logContext[] = $statement->errorInfo();
-			$this->logger->error('Setting a new display name for username \'' . $username . '\' failed, because the db update failed.' . print_r($statement->errorInfo()),
+			$this->logger->error('Setting a new display name for username \''
+				. $username . '\' failed, because the db update failed.'
+				. print_r($statement->errorInfo()),
 				$this->logContext);
 			return FALSE;
 		}
@@ -178,8 +180,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		if (strlen($password) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
 			$this->logger->error('Setting a new password for \''
 				. $username . '\' was rejected because it is longer than '
-				.Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH.' characters. This is '
-				.'to prevent denial of service attacks against the serve.',
+				. Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH . ' characters. This is '
+				. 'to prevent denial of service attacks against the serve.',
 				$this->logContext);
 			return FALSE;
 		}
@@ -210,7 +212,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function countUsers() {
 		$statement = $this->db->getDbHandle()->query($this->config->getQueryCountUsers());
-		$userCount =  $statement->fetchColumn();
+		$userCount = $statement->fetchColumn();
 		return $userCount;
 	}
 
@@ -238,7 +240,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
 		} else {
-			$this->logger->error('Creating the user with username \'' . $providedUsername . '\' failed, because the db update failed.',
+			$this->logger->error('Creating the user with username \''
+				. $providedUsername . '\' failed, because the db update failed.',
 				$this->logContext);
 			return FALSE;
 
@@ -277,7 +280,6 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 
-
 	/**
 	 * @param $password string the password to hash
 	 * @return bool|string the hashed password or FALSE on failure
@@ -288,8 +290,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// user db might not be able to read a newer hash string.
 		$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 		if ($hashedPassword === FALSE) {
-			$this->logger->error('Setting a new password failed, because the hashing function failed.',
-				$this->logContext);
+			$this->logger->error('Setting a new password failed, because the hashing'
+				. 'function failed.', $this->logContext);
 			return FALSE;
 		}
 

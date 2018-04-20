@@ -157,33 +157,44 @@ class Config {
 		$logContext = ['app' => 'user_backend_sql_raw'];
 		// mandatory keys
 		if (empty($this->appConfiguration)) {
-			$this->logger->critical('The Nextcloud configuration (config/config.php) does not contain the key '
-				. self::CONFIG_KEY . ' which is should contain this apps configuration.');
+			$this->logger->critical('The Nextcloud configuration (config/config.php) does'
+				.'not contain the key '. self::CONFIG_KEY . ' which is should contain this apps'
+				.'configuration.');
 		} else {
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_NAME])) {
-				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_NAME), $logContext);
+				$this->logger->critical(
+					$this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_NAME),
+					$logContext);
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_USER])) {
-				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_USER), $logContext);
+				$this->logger->critical(
+					$this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_USER),
+					$logContext);
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_PASSWORD])) {
-				$this->logger->critical($this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_PASSWORD), $logContext);
+				$this->logger->critical(
+					$this->errorMessageForMandatorySubkey(self::CONFIG_KEY_DB_PASSWORD),
+					$logContext);
 			}
 			// optional keys
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_HOST])) {
 				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_HOST
-					. ' is not set, defaulting to host ' . self::DEFAULT_DB_HOST . '.', $logContext);
+					. ' is not set, defaulting to host ' . self::DEFAULT_DB_HOST . '.',
+					$logContext);
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_PORT])) {
 				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_PORT
-					. ' is not set, defaulting to port ' . self::DEFAULT_DB_PORT . '.', $logContext);
+					. ' is not set, defaulting to port ' . self::DEFAULT_DB_PORT . '.',
+					$logContext);
 			}
 
 			// keys prone to typos
 			if (!empty($this->getHashAlgorithmForNewPasswords())
 				&& !$this->hashAlgorithmIsSupported($this->getHashAlgorithmForNewPasswords())) {
-				$this->logger->critical('The config key ' . self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
-					. ' contains an invalid value.  Only md5, sha256 and sha512 are supported.', $logContext);
+				$this->logger->critical(
+					'The config key ' . self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
+					. ' contains an invalid value.  Only md5, sha256 and sha512 are supported.',
+					$logContext);
 
 			}
 
@@ -197,12 +208,13 @@ class Config {
 	 * @return string the full error message and hint
 	 */
 	private function errorMessageForMandatorySubkey($subkeyName) {
-		return 'The config key ' . $subkeyName . ' is not set. Add it to config/config.php as a subkey of '
-			. self::CONFIG_KEY . '.';
+		return 'The config key ' . $subkeyName . ' is not set. Add it to'
+		.'config/config.php as a subkey of '. self::CONFIG_KEY . '.';
 	}
 
 	private function hashAlgorithmIsSupported($hashAlgorithm) {
-		$normalized = strtolower(preg_replace("/[-_]/", "", $hashAlgorithm));
+		$normalized = strtolower(
+			preg_replace("/[-_]/", "", $hashAlgorithm));
 		return $normalized === 'md5'
 			|| $normalized === 'sha256'
 			|| $normalized === 'sha512';

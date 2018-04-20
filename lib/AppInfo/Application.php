@@ -34,6 +34,7 @@ class Application extends App {
 		$nextCloudConfig = $this->getContainer()->getServer()->getConfig();
 		$logger = $this->getContainer()->getServer()->getLogger();
 		$appConfig = new Config($logger, $nextCloudConfig);
-		\OC::$server->getUserManager()->registerBackend(new UserBackend($logger, $appConfig, new Db($appConfig)));
+		\OC::$server->getUserManager()->registerBackend(
+			new UserBackend($logger, $appConfig, new Db($appConfig)));
 	}
 }
