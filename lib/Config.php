@@ -208,9 +208,9 @@ class Config {
 			if ($this->getHashAlgorithmForNewPasswords() === 'argon2i'
 				&& version_compare(PHP_VERSION, '7.2.0', '<')) {
 				$this->logger->critical(
-					'You specified Argon2i as the hash algorithm for new passwords. Argon2i is only'
-					.' available in PHP version 7.2.0 and higher, but your PHP version is '
-					.PHP_VERSION.'.',
+					'You specified Argon2i as the hash algorithm for new passwords. '
+					.'Argon2i is only available in PHP version 7.2.0 and higher, but your PHP '
+					.'version is '.PHP_VERSION.'.',
 					$logContext);
 			}
 		}
