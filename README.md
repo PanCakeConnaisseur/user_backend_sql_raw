@@ -32,12 +32,13 @@ There are three types of configuration parameters
     - *db_host* is optional and defaults to `localhost`
     - *db_port* is optional and defaults to `5432`
     - the rest is mandatory
-2. **queries** that this app will use to query the db. These will be passed verbatim to the
+2. **queries** that this app will use to query the db.
+    - Queries will be passed verbatim to the
  [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object. You don't need to 
  configure queries for all user attributes. For example if you use the default user home simply 
  leave the query `get_home` empty, i.e. `'get_home' => '',`. User Backend SQl Raw will recognize 
  this and [communicate](https://docs.nextcloud.com/server/13/developer_manual/api/OCP/UserInterface.html#OCP\UserInterface::implementsActions) to Nextcloud that this feature is not available.
-    - For user authentication (i.e. login) you need at least `get_password_hash_for_user` and 
+        - For user authentication (i.e. login) you need at least `get_password_hash_for_user` and 
     `user_exists`. All other queries are optional.
 3. **hash algorithm** (`hash_algorithm_for_new_passwords`) used for creation of new passwords
     - This one is optional and, if you leave it empty, defaults to `bcrypt` ($2y$).
