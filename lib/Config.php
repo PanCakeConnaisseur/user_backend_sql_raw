@@ -208,7 +208,7 @@ class Config {
 	 * @return string the full error message and hint
 	 */
 	private function errorMessageForMandatorySubkey($subkeyName) {
-		return 'The config key ' . $subkeyName . ' is not set. Add it to'
+		return 'The config key ' . $subkeyName . ' is not set. Add it to '
 		.'config/config.php as a subkey of '. self::CONFIG_KEY . '.';
 	}
 
