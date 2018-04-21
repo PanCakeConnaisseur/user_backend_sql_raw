@@ -173,9 +173,9 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		return !empty($this->config->getQueryGetUsers());
 	}
 
-	public function setPassword($username, $password) {
+	public function setPassword($username, $newPassword) {
 		// prevent denial of service
-		if (strlen($password) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
+		if (strlen($newPassword) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
 			$this->logger->error('Setting a new password for \''
 				. $username . '\' was rejected because it is longer than '
 				. Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH . ' characters. This is '
@@ -188,6 +188,15 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return FALSE;
 		}
 
+		$newPasswordHash = $this->hashPassword($newPassword);
+		if ($newPasswordHash === FALSE) {
+			$this->logger->critical('Setting a new password failed,'
+				. ' because the hashing function \''
+				. $this->config->getHashAlgorithmForNewPasswords()
+				. '\' failed.', $this->logContext);
+			return FALSE;
+		}
+
 		$dbHandle = $this->db->getDbHandle();
 		// Don't throw exceptions on db errors because this could leak passwords
 		// to logs.
@@ -196,7 +205,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 		$dbUpdateWasSuccessful = $statement->execute([
 			':username' => $username,
-			':new_password_hash' => $this->hashPassword($password)]);
+			':new_password_hash' => $this->hashPassword($newPassword)]);
 
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
@@ -265,62 +274,65 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			&& !empty($this->config->getQueryUserExists()));
 	}
 
+	/**
+	 * @param $password string the password to hash
+	 * @return bool|string hashed password or FALSE on failure
+	 */
 	private function hashPassword($password) {
-		// By default strong bcrypt hashing will be used but if the user
-		// specified Config::CONFIG_KEY_HASH_ALGORITHM then this will be used
-		// instead. This enables support for older software that does not
-		// understand bcrypt.
-		if (empty($this->config->getHashAlgorithmForNewPasswords())) {
-			return $this->hashWithBcrypt($password);
-		} else {
-			return $this->hashWithOther($password);
+		$algorithmFromConfig = $this->config->getHashAlgorithmForNewPasswords();
+		$hashedPassword = FALSE;
+
+		// default algorithm is bcrypt
+		if ($algorithmFromConfig === 'bcrypt' || empty($algorithmFromConfig)) {
+			$hashedPassword = $this->hashWithModernMethod($password, PASSWORD_BCRYPT);
+		} elseif ($algorithmFromConfig === 'argon2i') {
+			$hashedPassword = $this->hashWithModernMethod($password, PASSWORD_ARGON2I);
+		} elseif ($algorithmFromConfig === 'sha512' || $algorithmFromConfig === 'sha256' || $algorithmFromConfig === 'md5') {
+			$hashedPassword = $this->hashWithOldMethod($password, $algorithmFromConfig);
 		}
+		return $hashedPassword;
 	}
 
 
 	/**
+	 * Creates password with the modern password_hash() method. Supports Bcrypt
+	 * and Argon2i.
 	 * @param $password string the password to hash
+	 * @param $algorithm int the algorithm to use for hashing the password
 	 * @return bool|string the hashed password or FALSE on failure
 	 */
-	private function hashWithBcrypt($password) {
-		// Set the password hash type (PASSWORD_BCRYPT) explicitly so that
-		// it does not change in future PHP versions. Other software using the
-		// user db might not be able to read a newer hash string.
-		$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-		if ($hashedPassword === FALSE) {
-			$this->logger->error('Setting a new password failed, because the hashing'
-				. 'function failed.', $this->logContext);
+	private function hashWithModernMethod($password, $algorithm) {
+		$hashedPassword = password_hash($password, $algorithm);
+		// Contrary to password_hash's documentation it also returns null if
+		// an algorithm is not supported.
+		if (is_null($hashedPassword)) {
 			return FALSE;
 		}
-
 		return $hashedPassword;
 	}
 
 	/**
-	 * Creates hashes using MD5-CRYPT, SHA-256-CRYPT or SHA-512-CRYPT
+	 * Creates hashes using MD5-CRYPT, SHA-256-CRYPT or SHA-512-CRYPT using the
+	 * the older method with "manual" creation of a salt.
 	 * @param $password string the password to hash
+	 * @param $algorithm string the algorithm to use for hashing the password
 	 * @return bool|string the hashed password or FALSE on failure
 	 */
-	private function hashWithOther($password) {
+	private function hashWithOldMethod($password, $algorithm) {
 		$salt = base64_encode(random_bytes(8));
 		$hashedPassword = FALSE;
 
-		$hashFunctionFromConfig = $this->config->getHashAlgorithmForNewPasswords();
-
-		if ($hashFunctionFromConfig === 'sha512') {
+		if ($algorithm === 'sha512') {
 			$hashedPassword = crypt($password, '$6$' . $salt . '$');
-		} elseif ($hashFunctionFromConfig === 'sha256') {
+		} elseif ($algorithm === 'sha256') {
 			$hashedPassword = crypt($password, '$5$' . $salt . '$');
-		} elseif ($hashFunctionFromConfig === 'md5') {
+		} elseif ($algorithm === 'md5') {
 			$hashedPassword = crypt($password, '$1$' . $salt . '$');
 		}
 
-		// If crypt() fails the returned string will be FALSE or shorter than 13
+		// If crypt() fails the returned string will be shorter than 13
 		// characters, see http://php.net/manual/en/function.crypt.php.
-		if ($hashedPassword === FALSE || strlen($hashedPassword) < 13) {
-			$this->logger->error('Setting a new password failed,'
-				. ' because the hashing function ' . $hashFunctionFromConfig
-				. ' failed.', $this->logContext);
+		if (strlen($hashedPassword) < 13) {
 			return FALSE;
 		}
 		return $hashedPassword;

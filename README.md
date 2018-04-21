@@ -33,9 +33,22 @@ There are three types of configuration parameters
     - *db_port* is optional and defaults to `5432`
     - the rest is mandatory
 2. **queries** that this app will use to query the db. These will be passed verbatim to the
- [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
+ [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object. You don't need to 
+ configure queries for all user attributes. For example if you use the default user home simply 
+ leave the query `get_home` empty, i.e. `'get_home' => '',`. User Backend SQl Raw will recognize 
+ this and [communicate](https://docs.nextcloud.com/server/13/developer_manual/api/OCP/UserInterface.html#OCP\UserInterface::implementsActions) to Nextcloud that this feature is not available.
+    - For user authentication (i.e. login) you need at least `get_password_hash_for_user` and 
+    `user_exists`. All other queries are optional.
 3. **hash algorithm** (`hash_algorithm_for_new_passwords`) used for creation of new passwords
-    - This one is optional. By default, if you leave the parameter empty, bcrypt ($2y$) will be used. This parameter only sets the hash algorithm used for the creation of new passwords. For checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php) and all common crypt formats are recognized. So you should set this parameter if your user db is used by software that does not support bcrypt. The other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT and SHA-512-CRYPT. The config values are `md5`, `sha256` an `sha512` respectively, e.g. `'hash_algorithm_for_new_passwords' => 'sha512',`.
+    - This one is optional and, if you leave it empty, defaults to `bcrypt` ($2y$).
+    - The other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT, SHA-512-CRYPT and Argon2i. 
+    The config values are `md5`, `sha256`, `sha512`, `argon2i` respectively, e.g. 
+      `'hash_algorithm_for_new_passwords' => 'sha512',`. Or you can explicitly set `bcrypt`.
+    - This parameter only sets the hash algorithm used for the creation of new passwords. For
+     checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php)
+     and all common crypt formats are recognized.
+    - Argon2i is only supported by PHP 7.2.0 and higher.
+    
 
 ### Queries
 - The queries use named parameters. You have to use the exact names as shown in the examples. For example to retrieve the hash for a user the query named `get_password_hash_for_user` will be used. Adjust it to your custom SQL query and simply put `:username` where you are referring to the username of the user trying to login.
@@ -44,7 +57,6 @@ There are three types of configuration parameters
 - `get_users` is a query that searches for users and does pattern matching, therefore it should contain a `ILIKE` (`I` for case insensitive)
     - must not already have a `LIMIT` or `OFFSET`. They will be added by the app at the and of the query by the app
     - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) necessary because of how prepared statements work.
-- For user authentication (i.e. login) you need at least `get_password_hash_for_user` and `user_exists`.
 
 ## Security
 - Password length is limited to 100 characters to prevent denial of service attacks against the 

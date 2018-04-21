@@ -178,13 +178,20 @@ class Config {
 			}
 			// optional keys
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_HOST])) {
-				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_HOST
+				$this->logger->debug('The config key ' . self::CONFIG_KEY_DB_HOST
 					. ' is not set, defaulting to host ' . self::DEFAULT_DB_HOST . '.',
 					$logContext);
 			}
 			if (empty($this->appConfiguration[self::CONFIG_KEY_DB_PORT])) {
-				$this->logger->info('The config key ' . self::CONFIG_KEY_DB_PORT
+				$this->logger->debug('The config key ' . self::CONFIG_KEY_DB_PORT
 					. ' is not set, defaulting to port ' . self::DEFAULT_DB_PORT . '.',
+					$logContext);
+			}
+
+			if (empty($this->appConfiguration[self::CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER])) {
+				$this->logger->debug('The config key '
+					. self::CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER
+					. ' is not set, defaulting to bcrypt.',
 					$logContext);
 			}
 
@@ -193,12 +200,19 @@ class Config {
 				&& !$this->hashAlgorithmIsSupported($this->getHashAlgorithmForNewPasswords())) {
 				$this->logger->critical(
 					'The config key ' . self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
-					. ' contains an invalid value.  Only md5, sha256 and sha512 are supported.',
+					. ' contains an invalid value.  Only md5, sha256, sha512, bcrypt and argon2i '
+					.'are supported.',
 					$logContext);
-
 			}
 
-
+			if ($this->getHashAlgorithmForNewPasswords() === 'argon2i'
+				&& version_compare(PHP_VERSION, '7.2.0', '<')) {
+				$this->logger->critical(
+					'You specified Argon2i as the hash algorithm for new passwords. Argon2i is only'
+					.' available in PHP version 7.2.0 and higher, but your PHP version is '
+					.PHP_VERSION.'.',
+					$logContext);
+			}
 		}
 	}
 
@@ -217,6 +231,8 @@ class Config {
 			preg_replace("/[-_]/", "", $hashAlgorithm));
 		return $normalized === 'md5'
 			|| $normalized === 'sha256'
-			|| $normalized === 'sha512';
+			|| $normalized === 'sha512'
+			|| $normalized === 'bcrypt'
+			|| $normalized === 'argon2i';
 	}
 }
