@@ -25,7 +25,11 @@ use \PDO;
 
 class Db {
 
+	/** @var Config  */
 	private $config;
+
+	/** @var PDO */
+	private $dbHandle;
 
 	public function __construct(Config $config) {
 		$this->config = $config;
@@ -36,17 +40,25 @@ class Db {
 	 * @return PDO a PDO object that is used for database access
 	 */
 	public function getDbHandle() {
-		$dsn = $this->assembleDsnForPostgresql();
-		$dbHandle = new PDO($dsn);
-		$dbHandle->setAttribute(PDO::ATTR_EMULATE_PREPARES, FALSE);
-		$dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		// Some methods of the backend are called by Nextcloud in a way that
-		// suppresses exceptions, probably to avoid leaking passwords to log
-		// files. Therefore it is not necessary to change PDO::ATTR_ERRMODE for
-		// these manually. These methods are (as of Nextcloud 13.0.1):
-		// createUser(). But not setPassword(). Because checkPassword() only
-		// retrieves the hash it does not suffer from this problem at all.
-		return $dbHandle;
+		if (is_null($this->dbHandle)) {
+			$dsn = $this->assembleDsnForPostgresql();
+			$dbHandle = new PDO($dsn);
+			$dbHandle->setAttribute(PDO::ATTR_EMULATE_PREPARES, FALSE);
+			$dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			// Some methods of the backend are called by Nextcloud in a way that
+			// suppresses exceptions, probably to avoid leaking passwords to log
+			// files. Therefore it is not necessary to change PDO::ATTR_ERRMODE for
+			// these manually. These methods are (as of Nextcloud 13.0.1):
+			// createUser(). But not setPassword(). Because checkPassword() only
+			// retrieves the hash it does not suffer from this problem at all.
+
+			// only assign when setup was successful
+			$this->dbHandle = $dbHandle;
+		}
+		// Some methods change the error mode, therefore it needs to be reset to
+		// the default value.
+		$this->dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		return $this->dbHandle;
 	}
 
 
