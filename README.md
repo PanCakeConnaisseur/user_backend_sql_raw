@@ -55,13 +55,18 @@ There are three types of configuration parameters
     
 
 ### Queries
-- The queries use named parameters. You have to use the exact names as shown in the examples. For example to retrieve the hash for a user the query named `get_password_hash_for_user` will be used. Adjust it to your custom SQL query and simply put `:username` where you are referring to the username of the user trying to login.
-- All queries must return at most one column (but most queries use only the first anyway)
-- `user_exists` should return a boolean. See the example on how to do this properly.
-- `get_users` is a query that searches for users and does pattern matching, therefore it should contain a `ILIKE` (`I` for case insensitive)
-    - must not already have a `LIMIT` or `OFFSET`. They will be added to the end of your query by
+- The queries use named parameters. You have to use the exact names as shown in the examples. For
+ example to retrieve the hash for a user the query named `get_password_hash_for_user` will be 
+ used. Adjust it to your custom SQL query and simply put `:username` where you are referring to 
+ the username of the user trying to login.
+- For all queries that read data, only the first column is interpreted
+- Two queries need a little bit of attention
+    1. `user_exists` should return a boolean. See the example on how to do this properly.
+    2. `get_users` is a query that searches for users and does pattern matching, therefore it should 
+contain an `ILIKE` (`I` for case insensitive)
+        - must not already have a `LIMIT` or `OFFSET`. They will be added to the end of your query by
      this app
-    - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) 
+        - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) 
     necessary because of how prepared statements work. Again, see the example.
 
 ## Security
