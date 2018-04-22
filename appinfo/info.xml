@@ -15,6 +15,7 @@
     <category>security</category>
     <bugs>https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues</bugs>
     <repository>https://github.com/PanCakeConnaisseur/user_backend_sql_raw</repository>
+    <screenshot>https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/a8b2261c7c6752b5502fd38da8a9067b7996fa75/screenshot.png</screenshot>
     <dependencies>
         <nextcloud min-version="13" max-version="13"/>
     </dependencies>
