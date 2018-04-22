@@ -48,6 +48,9 @@ There are three types of configuration parameters
     - This parameter only sets the hash algorithm used for the creation of new passwords. For
      checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php)
      and all common crypt formats are recognized.
+        - This means, that your db can have different hash formats simultaneously. Whenever a 
+        user's password is changed, it will be updated to the configured hash algorithm. This eases 
+         migration to more modern algorithms.
     - Argon2i is only supported by PHP 7.2.0 and higher.
     
 
