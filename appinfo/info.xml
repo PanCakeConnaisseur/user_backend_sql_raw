@@ -10,7 +10,7 @@
     <p>In contrast to the app *SQL user backend*, you write the SQL queries yourself. You are not limited by assumptions that app authors made about how your db is structured.</p>
      <p>The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt and the state-of-the-art Argon2i. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.</p>
      <p>At the moment only PostgreSQL is supported.</p>]]></description>
-    <version>0.10.0</version>
+    <version>0.10.1</version>
     <licence>agpl</licence>
     <author mail="dev@abelonline.de" >Alexey Abel</author>
     <documentation>
