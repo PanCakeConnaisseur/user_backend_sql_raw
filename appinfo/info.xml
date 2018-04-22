@@ -5,15 +5,15 @@
     <name>User Backend Using Raw SQL</name>
     <summary>User management and authentication through arbitrary SQL queries</summary>
     <description><![CDATA[
-    This app allows you to read/write user data to a SQL database using arbitrary SQL queries, enabling you to use any SQL db schema.
+This app allows you to read/write user data to a SQL database using arbitrary SQL queries, enabling you to use any SQL db schema.
 
-    You can authenticate, create, delete users, change their password or display name, basically do (almost) everything that Nextcloud can do with users.
+You can authenticate, create, delete users, change their password or display name, basically do (almost) everything that Nextcloud can do with users.
 
-    In contrast to the app *SQL user backend*, you write the SQL queries yourself. You are not limited by assumptions that app authors made about how your db is structured.
+In contrast to the app *SQL user backend*, you write the SQL queries yourself. You are not limited by assumptions that app authors made about how your db is structured.
 
-    The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt and the state-of-the-art Argon2i. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.
+The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt and the state-of-the-art Argon2i. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.
 
-    At the moment only PostgreSQL is supported.]]></description>
+At the moment only PostgreSQL is supported.]]></description>
     <version>0.10.2</version>
     <licence>agpl</licence>
     <author mail="dev@abelonline.de" >Alexey Abel</author>
@@ -24,8 +24,7 @@
     <category>security</category>
     <bugs>https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues</bugs>
     <repository>https://github.com/PanCakeConnaisseur/user_backend_sql_raw</repository>
-    <screenshot small-thumbnail="https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/91b25147f25a29b1981c20419f17918ea0114ab6/screenshot-small.png">https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw
-        /91b25147f25a29b1981c20419f17918ea0114ab6/screenshot-large.png</screenshot>
+    <screenshot small-thumbnail="https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/2eb5221f0725a9ab09fde6384dea62463c7c52e5/screenshot-dark-small.jpg">https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/2eb5221f0725a9ab09fde6384dea62463c7c52e5/screenshot-dark-large.jpg</screenshot>
     <dependencies>
         <nextcloud min-version="13" max-version="13"/>
     </dependencies>
