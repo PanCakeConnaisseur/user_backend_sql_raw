@@ -68,3 +68,11 @@ webserver. Otherwise users can supply passwords with 10000 or more characters wh
  high load for the server when they are run through hashing functions.
 - The username during user creation (`create_user`) and the display name (`set_display_name`) are
  not limited in length. You should limit this on the db layer.
+ 
+## Troubleshooting
+- This app has no UI, therefore all error output is written to Nextcloud's log 
+(*/var/www/data/nextcloud.log* or */var/log/syslog*).
+- There are no semantic checks for the SQL queries. As soon as a query string
+  is not empty the app assumes that it is a query and executes it. It's likely that you will 
+  have typos in your SQL queries. Check the log to find out if and why SQL queries fail.
+- This app also logs non-SQL configuration errors, e.g. missing db name.
