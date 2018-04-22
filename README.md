@@ -59,8 +59,10 @@ There are three types of configuration parameters
 - All queries must return at most one column (but most queries use only the first anyway)
 - `user_exists` should return a boolean. See the example on how to do this properly.
 - `get_users` is a query that searches for users and does pattern matching, therefore it should contain a `ILIKE` (`I` for case insensitive)
-    - must not already have a `LIMIT` or `OFFSET`. They will be added by the app at the and of the query by the app
-    - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) necessary because of how prepared statements work.
+    - must not already have a `LIMIT` or `OFFSET`. They will be added to the end of your query by
+     this app
+    - specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) 
+    necessary because of how prepared statements work. Again, see the example.
 
 ## Security
 - Password length is limited to 100 characters to prevent denial of service attacks against the 
