@@ -1,6 +1,6 @@
 # User Backend SQL Raw
 This is an app for Nextcloud that offers user management and authentication with arbitrary SQL 
-queries. Only tested with Nextcloud 13. Supports PostgreSQL and MariaDB/MySQL.
+queries. It supports PostgreSQL and MariaDB/MySQL. Only tested with Nextcloud 13. 
 
 ## Configuration
 This app has no user interface. All configuration is done via Nextcloud's system configuration in
@@ -38,9 +38,11 @@ There are three types of configuration parameters
 	- *db_name*, *db_user* and *db_password* are mandatory
 	- *mariadb_charset* sets the charset for mariadb connections, is optional and defaults to `utf8mb4`
 2. **queries** this app will use to query the db.
-	- Queries are passed verbatim to the
- [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object. You don't need to 
- supply all queries. For example if you use the default user home simply 
+	- The queries use named parameters. You have to use the exact names as shown in the examples. For
+ example to retrieve the hash for a user the query named `get_password_hash_for_user` will be 
+ used. Write your custom SQL query and simply put `:username` where you are referring to 
+ the username (aka uid) of the user trying to login.
+	- You don't need to supply all queries. For example if you use the default user home simply 
  leave the query `get_home` commented. This app will recognize 
  this and [communicate](https://docs.nextcloud.com/server/13/developer_manual/api/OCP/UserInterface.html#OCP\UserInterface::implementsActions) to Nextcloud that this feature is not available.
 		- `user_exists` and `get_users` are required, the rest is optional.
@@ -60,12 +62,8 @@ There are three types of configuration parameters
 	- Argon2i is only supported by PHP 7.2.0 and higher.
 
 ### Queries
-- The queries use named parameters. You have to use the exact names as shown in the examples. For
- example to retrieve the hash for a user the query named `get_password_hash_for_user` will be 
- used. Adjust it to your custom SQL query and simply put `:username` where you are referring to 
- the username of the user trying to login.
-- For all queries that read data, only the first column is interpreted
-- Two queries need a little bit of attention
+- For all queries that read data, only the first column is interpreted.
+- Two queries need a little bit of attention:
 	1. `user_exists` should return a boolean. See the example on how to do this properly.
 	2. `get_users` is a query that searches for users and does pattern matching, therefore it should 
 contain an `ILIKE` (`I` for case insensitive)
@@ -73,6 +71,8 @@ contain an `ILIKE` (`I` for case insensitive)
 	 this app
 		- specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) 
 	necessary because of how prepared statements work. Again, see the example.
+- Queries are passed verbatim to the
+   [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
 
 ## Security
 - Password length is limited to 100 characters to prevent denial of service attacks against the 
@@ -82,8 +82,9 @@ web server. Otherwise users can supply passwords with 10000 or more characters w
  not limited in length. You should limit this on the db layer.
  
 ## Troubleshooting
-- This app has no UI, therefore all error output is written to [Nextcloud's log](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/logging_configuration.html), 
-e.g. */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
+- **TL;DR**: check the log file
+- This app has no UI, therefore all error output (exceptions and explicit logs) is written to [Nextcloud's log](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/logging_configuration.html), 
+by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
 - There are no semantic checks for the SQL queries. As soon as a query string
   is not empty the app assumes that it is a query and executes it. It's likely that you will 
   have typos in your SQL queries. Check the log to find out if and why SQL queries fail.
