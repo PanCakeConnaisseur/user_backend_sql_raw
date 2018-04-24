@@ -24,7 +24,8 @@ namespace OCA\UserBackendSqlRaw\AppInfo;
 use OCA\UserBackendSqlRaw\Config;
 use \OCP\AppFramework\App;
 use \OCA\UserBackendSqlRaw\UserBackend;
-use \OCA\UserBackendSqlRaw\Db;
+use \OCA\UserBackendSqlRaw\Dbs\Mariadb;
+use \OCA\UserBackendSqlRaw\Dbs\Postgresql;
 
 class Application extends App {
 
@@ -32,9 +33,17 @@ class Application extends App {
 		parent::__construct('user_backend_sql_raw', $urlParams);
 
 		$nextCloudConfig = $this->getContainer()->getServer()->getConfig();
-		$logger = $this->getContainer()->getServer()->getLogger();
-		$appConfig = new Config($logger, $nextCloudConfig);
+		$nextCloudLogger = $this->getContainer()->getServer()->getLogger();
+		$appConfig = new Config($nextCloudLogger, $nextCloudConfig);
+
+		if ($appConfig->getDbType() === 'mariadb') {
+			$db = new Mariadb($appConfig);
+		} else {
+			// PostgreSQL is default
+			$db = new Postgresql($appConfig);
+		}
+
 		\OC::$server->getUserManager()->registerBackend(
-			new UserBackend($logger, $appConfig, new Db($appConfig)));
+			new UserBackend($nextCloudLogger, $appConfig, $db));
 	}
 }

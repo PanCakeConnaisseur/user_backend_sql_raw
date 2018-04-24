@@ -23,10 +23,15 @@ namespace OCA\UserBackendSqlRaw;
 
 use \PDO;
 
-class Db {
+/**
+ * Class Db combines common methods of the db access and db handle (PDO)
+ * creation.
+ * @package OCA\UserBackendSqlRaw
+ */
+abstract class Db {
 
 	/** @var Config  */
-	private $config;
+	protected $config;
 
 	/** @var PDO */
 	private $dbHandle;
@@ -41,19 +46,14 @@ class Db {
 	 */
 	public function getDbHandle() {
 		if (is_null($this->dbHandle)) {
-			$dsn = $this->assembleDsnForPostgresql();
-			$dbHandle = new PDO($dsn);
-			$dbHandle->setAttribute(PDO::ATTR_EMULATE_PREPARES, FALSE);
-			$dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+			$this->dbHandle = $this->createDbHandle();
 			// Some methods of the backend are called by Nextcloud in a way that
 			// suppresses exceptions, probably to avoid leaking passwords to log
 			// files. Therefore it is not necessary to change PDO::ATTR_ERRMODE for
 			// these manually. These methods are (as of Nextcloud 13.0.1):
 			// createUser(). But not setPassword(). Because checkPassword() only
 			// retrieves the hash it does not suffer from this problem at all.
-
-			// only assign when setup was successful
-			$this->dbHandle = $dbHandle;
 		}
 		// Some methods change the error mode, therefore it needs to be reset to
 		// the default value.
@@ -63,15 +63,17 @@ class Db {
 
 
 	/**
+	 * Returns a new PDO db handle for the specific db type
+	 * @return PDO a new PDO object
+	 */
+	abstract protected function createDbHandle();
+
+
+	/**
 	 * Returns a Data Source Name (DSN) that is used by a PDO object for
-	 * creating the connection to the database.
+	 * creating the connection to a database. This is db specific.
 	 * @return string the DSN string
 	 */
-	private function assembleDsnForPostgresql() {
-		return 'pgsql:host=' . ($this->config->getDbHost() ?? Config::DEFAULT_DB_HOST)
-			. ';port=' . ($this->config->getDbPort() ?? Config::DEFAULT_DB_PORT)
-			. ';dbname=' . $this->config->getDbName()
-			. ';user=' . $this->config->getDbUser()
-			. ';password=' . $this->config->getDbPassword();
-	}
+	abstract protected function assembleDsn();
+
 }
