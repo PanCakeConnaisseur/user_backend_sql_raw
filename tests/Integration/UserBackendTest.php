@@ -413,7 +413,7 @@ class UserBackendTest extends TestCase {
 				array(
 					'get_password_hash_for_user' => 'SELECT password_hash FROM users WHERE username = :username',
 					'user_exists' => 'SELECT EXISTS(SELECT 1 FROM users WHERE username = :username)',
-					'get_users' => 'SELECT username FROM users WHERE (username LIKE :username COLLATE NOCASE) OR (display_name LIKE :username COLLATE NOCASE)',
+					'get_users' => 'SELECT username FROM users WHERE (username LIKE :search COLLATE NOCASE) OR (display_name LIKE :search COLLATE NOCASE)',
 					'set_password_hash_for_user' => 'UPDATE users SET password_hash = :new_password_hash WHERE username = :username',
 					'delete_user' => 'DELETE FROM users WHERE username = :username',
 					'get_display_name' => 'SELECT display_name FROM users WHERE username = :username',

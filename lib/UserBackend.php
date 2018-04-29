@@ -98,7 +98,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// wildcards in the LIKE expression. Therefore they will be escaped.
 		$searchString = $this->escapePercentAndUnderscore($searchString);
 
-		$parameterSubstitution['username'] = '%' . $searchString . '%';
+		$parameterSubstitution['search'] = '%' . $searchString . '%';
 
 		if (is_null($limit)) {
 			$limitSegment = '';

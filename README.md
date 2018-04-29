@@ -18,7 +18,7 @@ This app has no user interface. All configuration is done via Nextcloud's system
 		'queries' => array(
 			'get_password_hash_for_user' => 'SELECT password_hash FROM users_fqda WHERE fqda = :username',
 			'user_exists' => 'SELECT EXISTS(SELECT 1 FROM users_fqda WHERE fqda = :username)',
-			'get_users' => 'SELECT fqda FROM users_fqda WHERE fqda ILIKE :username',
+			'get_users' => 'SELECT fqda FROM users_fqda WHERE (fqda ILIKE :search) OR (display_name ILIKE :search)',
 			//'set_password_hash_for_user' => 'UPDATE users SET password_hash = :new_password_hash WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
 			//'delete_user' => 'DELETE FROM users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
 			//'get_display_name' => 'SELECT display_name FROM users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
@@ -66,12 +66,13 @@ There are three types of configuration parameters
 - For all queries that read data, only the first column is interpreted.
 - Two queries need a little bit of attention:
 	1. `user_exists` should return a boolean. See the example on how to do this properly.
-	2. `get_users` is a query that searches for users and does pattern matching, therefore it should 
-contain an `ILIKE` (`I` for case insensitive)
-		- must not already have a `LIMIT` or `OFFSET`. They will be added to the end of your query by
-	 this app
-		- specify the `LIKE` without `%`, they will be added by the app. This is (unfortunately) 
-	necessary because of how prepared statements work. Again, see the example.
+	2. `get_users` is a query that search for usernames (e.g. *bob*) and display names (e.g. *Bob Bobson*) and returns usernames
+		- make sure the query looks through both usernames **and** display names, see example config
+		- do case insensitive pattern matching, i.e. `ILIKE` (`ILIKE` only available in PostgreSQL)
+		- query must not already contain a `LIMIT` or `OFFSET`. They will be added to the end of your query by
+	      this app
+		- specify the `LIKE` without `%`, they will be added by the app. This is due to how prepared
+		  statements work. Again, see the example.
 - Queries are passed verbatim to the
    [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
 
