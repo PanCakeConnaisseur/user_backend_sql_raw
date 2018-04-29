@@ -94,6 +94,6 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
   have typos in your SQL queries. Check the log to find out if and why SQL queries fail.
 - This app also logs non-SQL configuration errors, e.g. missing db name.
 
-#Release Notes
+# Release Notes
 ## 1.0.0
 - named parameter in query `get_users` was `:username`, is now `:search` because you search for usernames and display names.
