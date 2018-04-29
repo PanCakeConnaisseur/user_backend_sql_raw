@@ -2,6 +2,8 @@
 This is an app for Nextcloud that offers user management and authentication with arbitrary SQL 
 queries. It supports PostgreSQL and MariaDB/MySQL. Only tested with Nextcloud 13. 
 
+(*See [release notes](#Release Notes) below for (possibly breaking) changes in new versions.*)
+
 ## Configuration
 This app has no user interface. All configuration is done via Nextcloud's system configuration in
  *config/config.php*. This app uses the config key `user_backend_sql_raw.`. The following code shows a 
@@ -91,3 +93,7 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
   is not empty the app assumes that it is a query and executes it. It's likely that you will 
   have typos in your SQL queries. Check the log to find out if and why SQL queries fail.
 - This app also logs non-SQL configuration errors, e.g. missing db name.
+
+#Release Notes
+## 1.0.0
+- named parameter in query `get_users` was `:username`, is now `:search` because you search for usernames and display names.
