@@ -191,7 +191,7 @@ class UserBackendTest extends TestCase {
 		$passwordForTest = '%ran!34;;;!783-_';
 
 		$userObject = $userManager->get($usernameForTest);
-		$userObject->setPassword($passwordForTest);
+		self::assertTrue($userObject->setPassword($passwordForTest));
 
 		// check that password hash in db actually starts with $1$ and therefore
 		// is a MD5-CRYPT hash
@@ -219,7 +219,7 @@ class UserBackendTest extends TestCase {
 		$passwordForTest = '%ran!34;;;!783-_';
 
 		$userObject = $userManager->get($usernameForTest);
-		$userObject->setPassword($passwordForTest);
+		self::assertTrue($userObject->setPassword($passwordForTest));
 
 		// check that password hash in db actually starts with $5$ and therefore
 		// is a SHA256-CRYPT hash
@@ -247,7 +247,7 @@ class UserBackendTest extends TestCase {
 		$passwordForTest = '%ran!34;;;!783-_';
 
 		$userObject = $userManager->get($usernameForTest);
-		$userObject->setPassword($passwordForTest);
+		self::assertTrue($userObject->setPassword($passwordForTest));
 
 		// check that password hash in db actually starts with $6$ and therefore
 		// is a SHA512-CRYPT hash
@@ -275,7 +275,7 @@ class UserBackendTest extends TestCase {
 		$passwordForTest = '%ran!34;;;!783-_';
 
 		$userObject = $userManager->get($usernameForTest);
-		$userObject->setPassword($passwordForTest);
+		self::assertTrue($userObject->setPassword($passwordForTest));
 
 		// check that password hash in db actually starts with $2y$ and therefore
 		// is a bcrypt hash
@@ -306,7 +306,7 @@ class UserBackendTest extends TestCase {
 		$passwordForTest = '%ran!34;;;!783-_';
 
 		$userObject = $userManager->get($usernameForTest);
-		$userObject->setPassword($passwordForTest);
+		self::assertTrue($userObject->setPassword($passwordForTest));
 
 		// check that password hash in db actually starts with $argon2i$ and therefore
 		// is a argon2i hash
