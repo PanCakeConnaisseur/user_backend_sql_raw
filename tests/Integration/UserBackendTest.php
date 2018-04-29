@@ -22,6 +22,7 @@
 namespace OCA\UserBackendSqlRaw\Tests\Integration;
 
 use OC\AppFramework\Utility\SimpleContainer;
+use OC\User\User;
 use OCA\UserBackendSqlRaw\Config;
 use OCA\UserBackendSqlRaw\Tests\Integration\Dbs\SqliteMemoryTestDb;
 use OCA\UserBackendSqlRaw\UserBackend;
@@ -344,7 +345,8 @@ class UserBackendTest extends TestCase {
 		$usernameForTest = 'newuser@example.com';
 		$passwordForTest = '%ran!34;;;!783-_';
 
-		$userManager->createUser($usernameForTest, $passwordForTest);
+		self::assertInstanceOf(User::class
+			, $userManager->createUser($usernameForTest, $passwordForTest));
 		self::assertTrue($userManager->userExists('newuser@example.com'));
 
 		$expectedUserObject = $userManager->get('newuser@example.com');
