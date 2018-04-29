@@ -377,7 +377,7 @@ class UserBackendTest extends TestCase {
 		$userManager->registerBackend($this->userBackend);
 
 		$aliceUserObject = $userManager->get('alice');
-		$aliceUserObject->setDisplayName('Alice Alisson-Balisson');
+		self::assertTrue($aliceUserObject->setDisplayName('Alice Alisson-Balisson'));
 		self::assertSame('Alice Alisson-Balisson', $aliceUserObject->getDisplayName());
 	}
 
@@ -386,8 +386,8 @@ class UserBackendTest extends TestCase {
 		$userManager->registerBackend($this->userBackend);
 
 		$aliceUserObject = $userManager->get('alice');
-		$aliceUserObject
-			->setDisplayName('Aliçé Alissôn-Balìsßon the 3rd van Høuten фжщй');
+		self::assertTrue($aliceUserObject
+			->setDisplayName('Aliçé Alissôn-Balìsßon the 3rd van Høuten фжщй'));
 		self::assertSame('Aliçé Alissôn-Balìsßon the 3rd van Høuten фжщй'
 			, $aliceUserObject->getDisplayName());
 	}
