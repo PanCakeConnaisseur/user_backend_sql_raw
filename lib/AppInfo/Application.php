@@ -21,9 +21,7 @@
 
 namespace OCA\UserBackendSqlRaw\AppInfo;
 
-use OCA\UserBackendSqlRaw\Config;
 use \OCP\AppFramework\App;
-use \OCA\UserBackendSqlRaw\UserBackend;
 use \OCA\UserBackendSqlRaw\Dbs\Mariadb;
 use \OCA\UserBackendSqlRaw\Dbs\Postgresql;
 
@@ -32,18 +30,31 @@ class Application extends App {
 	public function __construct(array $urlParams = array()) {
 		parent::__construct('user_backend_sql_raw', $urlParams);
 
-		$nextCloudConfig = $this->getContainer()->getServer()->getConfig();
-		$nextCloudLogger = $this->getContainer()->getServer()->getLogger();
-		$appConfig = new Config($nextCloudLogger, $nextCloudConfig);
+		$container = $this->getContainer();
 
-		if ($appConfig->getDbType() === 'mariadb') {
-			$db = new Mariadb($appConfig);
-		} else {
-			// PostgreSQL is default
-			$db = new Postgresql($appConfig);
-		}
+		$container->registerService('OCA\UserBackendSqlRaw\Db', function ($c) {
+			/** @var \OCA\UserBackendSqlRaw\Config $config */
+			$config = $c->query('OCA\UserBackendSqlRaw\Config');
 
-		\OC::$server->getUserManager()->registerBackend(
-			new UserBackend($nextCloudLogger, $appConfig, $db));
+			if ($config->getDbType() === 'mariadb') {
+				return new Mariadb($config);
+			} else {
+				// PostgreSQL is default
+				return new Postgresql($config);
+			}
+		});
+
+		/** Nextcloud's dependency injection framework will take care of the
+		 * instantiation of all the arguments for the UserBackend class and
+		 * their dependencies. The only thing that can not be automatically
+		 * instantiated is the Db class because it is abstract. This is what the
+		 * above registerService('OCA\UserBackendSqlRaw\Db...) is defined for.
+		 * It tells the DI framework what to do if Db needs to instantiated for
+		 * an argument.
+		 */
+		$userBackendSqlRaw = \OC::$server
+			->query(\OCA\UserBackendSqlRaw\UserBackend::class);
+
+		\OC::$server->getUserManager()->registerBackend($userBackendSqlRaw);
 	}
 }
