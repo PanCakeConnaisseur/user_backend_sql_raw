@@ -116,7 +116,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 		$queryFromConfig = $this->config->getQueryGetUsers();
 
-		$finalQuery = '(' . $queryFromConfig . ')' . $limitSegment . $offsetSegment;
+		$finalQuery = $queryFromConfig . $limitSegment . $offsetSegment;
 
 		$statement = $this->db->getDbHandle()->prepare($finalQuery);
 		$statement->execute($parameterSubstitution);
