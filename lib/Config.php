@@ -68,7 +68,7 @@ class Config {
 		if (empty($this->appConfiguration)) {
 			throw new \UnexpectedValueException('The Nextcloud '
 				.'configuration (config/config.php) does not contain the key '
-				. self::CONFIG_KEY . ' which should contain the configuration'
+				. self::CONFIG_KEY . ' which should contain the configuration '
 				.'for the app user_backend_sql_raw.');
 		}
 	}
