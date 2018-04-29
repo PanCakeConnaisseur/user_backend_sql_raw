@@ -155,6 +155,29 @@ class UserBackendTest extends TestCase {
 		self::assertEquals(2, count($searchResult));
 	}
 
+	public function testWrongPasswordsAreRejected() {
+		$userManager = \OC::$server->getUserManager();
+		$userManager->registerBackend($this->userBackend);
+
+		// the correct password is "alice123"
+		self::assertFalse( $userManager->checkPassword('alice', 'alice'));
+		self::assertFalse( $userManager->checkPassword('alice', 'alice123 '));
+		self::assertFalse( $userManager->checkPassword('alice', ' alice123'));
+		self::assertFalse( $userManager->checkPassword('alice', 'alice123 more'));
+		self::assertFalse( $userManager->checkPassword('alice', ' "§$%&§'));
+		self::assertFalse( $userManager->checkPassword('alice', ''));
+		self::assertFalse( $userManager->checkPassword('alice', '1'));
+		self::assertFalse( $userManager->checkPassword('alice', 'true'));
+		self::assertFalse( $userManager->checkPassword('alice', 'TRUE'));
+		self::assertFalse( $userManager->checkPassword('alice', '\''));
+		self::assertFalse( $userManager->checkPassword('alice', '\'\''));
+		self::assertFalse( $userManager->checkPassword('alice', '\\'));
+		self::assertFalse( $userManager->checkPassword('alice', "\0"));
+
+		self::assertFalse( $userManager->checkPassword('bob.robert@black123.com', 'alice123'));
+		self::assertFalse( $userManager->checkPassword('non-existing-user', 'alice123'));
+	}
+
 	public function testPasswordInMd5FormatCanBeSetAndChecked() {
 		// change user backend to use md5
 		$this->userBackend = new UserBackend($this->getLogStub()
@@ -464,6 +487,7 @@ class UserBackendTest extends TestCase {
 						);
 						');
 
+		// the passwords are: alice123, bob123 and chris123 respectively
 		$this->dbHandle->exec('INSERT INTO users (username, password_hash, display_name, home) VALUES
     (\'alice\',\'$6$thisIsASalt$8LDk8b12ZDHHkT8MQ6tVWSCGRPYXfiByg/7oMgqyS9hYs1SCo8rGVUygyy3no856vFOkrfYjzX5tI2/EF0vNG.\',\'Alice Dorothea Merkel\',\'alice\'),
     (\'bob.robert@black123.com\',\'$6$thisIsASalt$dYNRPo7BIIKEuiOgx8yk82yWVatsyqHvG9deGf0GRfxlVOobAicPisy8deiprrjgGOWxZjeJnqLsykDlX6lBp1\',\'Bob Bobson-Jason\',\'/home/bob\'),
