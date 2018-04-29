@@ -45,7 +45,7 @@ final class ConfigTest extends TestCase {
 			->willReturn(array());
 
 		$this->expectException(\UnexpectedValueException::class);
-		$config = new Config($this->logStub, $this->nextcloudConfigStub);
+		new Config($this->logStub, $this->nextcloudConfigStub);
 	}
 
 	public function testThrowsExceptionIfMandatorySettingIsNotSet() {
