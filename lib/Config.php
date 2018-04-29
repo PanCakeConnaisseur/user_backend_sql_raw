@@ -77,16 +77,18 @@ class Config {
 	 * @return string db type to connect to
 	 */
 	public function getDbType() {
-		$dbType = $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_TYPE
+		$dbTypeFromConfig = $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_TYPE
 			,self::DEFAULT_DB_TYPE);
 
-		if (!$this->dbTypeIsSupported($dbType)) {
+		$normalizedDbType = $this->normalize($dbTypeFromConfig);
+
+		if (!$this->dbTypeIsSupported($normalizedDbType)) {
 			throw new \UnexpectedValueException('The config key '
-				. self::CONFIG_KEY_DB_TYPE . ' is set to '.$dbType.'. This '
+				. self::CONFIG_KEY_DB_TYPE . ' is set to '.$dbTypeFromConfig.'. This '
 				.'value is invalid. Only postgresql and mariadb are supported.');
 		}
 
-		return $dbType;
+		return $normalizedDbType;
 	}
 
 	/**
@@ -143,18 +145,20 @@ class Config {
 	 * @return string hash algorithm to be used for password generation
 	 */
 	public function getHashAlgorithmForNewPasswords() {
-		$configuredHashAlgorithm = $this->getConfigValueOrDefaultValue
+		$hashAlgorithmFromConfig = $this->getConfigValueOrDefaultValue
 		(self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
 			, self::DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS);
 
-		if (!$this->hashAlgorithmIsSupported($configuredHashAlgorithm)) {
+		$normalizedHashAlgorithm = $this->normalize($hashAlgorithmFromConfig);
+
+		if (!$this->hashAlgorithmIsSupported($normalizedHashAlgorithm)) {
 			throw new \UnexpectedValueException('The config key '
 				. self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS. ' is set '
-				.'to '.$configuredHashAlgorithm.'. This value is invalid. Only '
+				.'to '.$hashAlgorithmFromConfig.'. This value is invalid. Only '
 				.'md5, sha256, sha512, bcrypt and argon2i are supported.');
 		}
 
-		if ($configuredHashAlgorithm === 'argon2i'
+		if ($normalizedHashAlgorithm === 'argon2i'
 			&& version_compare(PHP_VERSION, '7.2.0', '<')) {
 			throw new \UnexpectedValueException(
 				'You specified Argon2i as the hash algorithm for new '
@@ -162,7 +166,7 @@ class Config {
 				.' higher, but your PHP version is '.PHP_VERSION.'.');
 		}
 
-		return $configuredHashAlgorithm;
+		return $normalizedHashAlgorithm;
 	}
 
 
@@ -269,10 +273,8 @@ class Config {
 	 * @return bool whether the db is supported
 	 */
 	private function dbTypeIsSupported($dbType) {
-		$normalized = strtolower(
-			preg_replace("/[-_]/", "", $dbType));
-		return $normalized === 'postgresql'
-			|| $normalized === 'mariadb';
+		return $dbType === 'postgresql'
+			|| $dbType === 'mariadb';
 	}
 
 	/**
@@ -281,12 +283,21 @@ class Config {
 	 * @return bool whether hash algorithm is supported
 	 */
 	private function hashAlgorithmIsSupported($hashAlgorithm) {
-		$normalized = strtolower(
-			preg_replace("/[-_]/", "", $hashAlgorithm));
-		return $normalized === 'md5'
-			|| $normalized === 'sha256'
-			|| $normalized === 'sha512'
-			|| $normalized === 'bcrypt'
-			|| $normalized === 'argon2i';
+		return $hashAlgorithm === 'md5'
+			|| $hashAlgorithm === 'sha256'
+			|| $hashAlgorithm === 'sha512'
+			|| $hashAlgorithm === 'bcrypt'
+			|| $hashAlgorithm === 'argon2i';
+	}
+
+	/**
+	 * Removes hyphens and underscores from input and makes it lowercase.
+	 * Used for hash algorithms, in case a user enters 'sha-512' or
+	 * 'PostgreSQL'.
+	 * @param $string string string to normalize
+	 * @return string lowercase input with hyphens and underscores removed
+	 */
+	private function normalize($string) {
+		return strtolower(preg_replace("/[-_]/", "", $string));
 	}
 }
