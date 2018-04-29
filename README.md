@@ -2,7 +2,7 @@
 This is an app for Nextcloud that offers user management and authentication with arbitrary SQL 
 queries. It supports PostgreSQL and MariaDB/MySQL. Only tested with Nextcloud 13. 
 
-(*See [release notes](#Release Notes) below for (possibly breaking) changes in new versions.*)
+(*See [release notes](#release-notes) below for (possibly breaking) changes in new versions.*)
 
 ## Configuration
 This app has no user interface. All configuration is done via Nextcloud's system configuration in
