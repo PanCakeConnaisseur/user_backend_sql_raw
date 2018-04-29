@@ -1,6 +1,15 @@
 # User Backend SQL Raw
 This is an app for Nextcloud that offers user management and authentication with arbitrary SQL 
-queries. It supports PostgreSQL and MariaDB/MySQL. Only tested with Nextcloud 13. 
+queries. 
+
+You can authenticate, create, delete users, change their password or display name, basically do (almost) everything that Nextcloud can do with users.
+
+In contrast to the app *SQL user backend*, you write the SQL queries yourself. You are not limited by assumptions that app authors made about how your db is structured.
+
+The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt and the state-of-the-art Argon2i. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.
+
+This app supports PostgreSQL and MariaDB/MySQL. Only tested with Nextcloud 13.
+
 
 See [release notes](#release-notes) below for (possibly breaking) changes in new versions.
 
