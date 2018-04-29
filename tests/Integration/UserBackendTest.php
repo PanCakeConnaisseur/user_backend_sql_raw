@@ -298,6 +298,21 @@ class UserBackendTest extends TestCase {
 		self::assertSame($userObject, $actualUser, 'Password check using Argon2i failed.');
 	}
 
+	public function testPasswordsThatAreLongerThan100CharactersAreRejectedWithFalse() {
+		$userManager = \OC::$server->getUserManager();
+		$userManager->registerBackend($this->userBackend);
+
+		$usernameForTest = 'alice';
+		$passwordForTest = str_repeat('0123456789',11);
+
+		$userObject = $userManager->get($usernameForTest);
+		$setPasswordResult = $userObject->setPassword($passwordForTest);
+		self::assertFalse($setPasswordResult);
+
+		$checkPasswordResult = $userManager->checkPassword('alice', $passwordForTest);
+		self::assertFalse($checkPasswordResult);
+	}
+
 
 	public function testUserCanBeCreatedAndCanLogin() {
 		$userManager = \OC::$server->getUserManager();
