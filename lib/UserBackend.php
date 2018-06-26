@@ -119,7 +119,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$finalQuery = $queryFromConfig . $limitSegment . $offsetSegment;
 
 		$statement = $this->db->getDbHandle()->prepare($finalQuery);
-		$statement->execute(parameterSubstitutions);
+		$statement->execute($parameterSubstitutions);
 		// Setting the second parameter to 0 will ensure, that only the first
 		// column is returned.
 		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
