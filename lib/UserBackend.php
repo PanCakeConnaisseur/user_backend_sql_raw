@@ -89,7 +89,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function deleteUser($providedUsername) {
 		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryDeleteUser());
-		$wasUserDeleted = $statement->execute(['username' => $providedUsername]);
+		$wasUserDeleted = $this->executeOrCatchExceptionAndReturnFalse($statement, ['username' => $providedUsername]);
 		return $wasUserDeleted;
 	}
 
@@ -98,20 +98,20 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// wildcards in the LIKE expression. Therefore they will be escaped.
 		$searchString = $this->escapePercentAndUnderscore($searchString);
 
-		$parameterSubstitution['search'] = '%' . $searchString . '%';
+		$parameterSubstitutions['search'] = '%' . $searchString . '%';
 
 		if (is_null($limit)) {
 			$limitSegment = '';
 		} else {
 			$limitSegment = ' LIMIT :limit';
-			$parameterSubstitution['limit'] = $limit;
+			$parameterSubstitutions['limit'] = $limit;
 		}
 
 		if (is_null($offset)) {
 			$offsetSegment = '';
 		} else {
 			$offsetSegment = ' OFFSET :offset';
-			$parameterSubstitution['offset'] = $offset;
+			$parameterSubstitutions['offset'] = $offset;
 		}
 
 		$queryFromConfig = $this->config->getQueryGetUsers();
@@ -119,7 +119,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$finalQuery = $queryFromConfig . $limitSegment . $offsetSegment;
 
 		$statement = $this->db->getDbHandle()->prepare($finalQuery);
-		$statement->execute($parameterSubstitution);
+		$statement->execute(parameterSubstitutions);
 		// Setting the second parameter to 0 will ensure, that only the first
 		// column is returned.
 		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
@@ -129,7 +129,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function userExists($providedUsername) {
 		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryUserExists());
-		$statement->execute(['username' => $providedUsername]);
+		$this->executeOrCatchExceptionAndReturnFalse($statement, ['username' => $providedUsername]);
 		$doesUserExist = $statement->fetchColumn();
 		return $doesUserExist;
 	}
@@ -152,9 +152,13 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function setDisplayName($username, $newDisplayName) {
 		$statement = $this->db->getDbHandle()->prepare($this->config->getQuerySetDisplayName());
-		$dbUpdateWasSuccessful = $statement->execute([
+		$parameterSubstitutions = [
 			':username' => $username,
-			':new_display_name' => $newDisplayName]);
+			':new_display_name' => $newDisplayName
+		];
+
+		$dbUpdateWasSuccessful =
+			$this->executeOrCatchExceptionAndReturnFalse($statement, $parameterSubstitutions);
 
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
@@ -203,9 +207,12 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$dbHandle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);
 		$statement = $dbHandle->prepare($this->config->getQuerySetPasswordForUser());
 
-		$dbUpdateWasSuccessful = $statement->execute([
+		$parameterSubstitutions = [
 			':username' => $username,
-			':new_password_hash' => $this->hashPassword($newPassword)]);
+			':new_password_hash' => $this->hashPassword($newPassword)];
+
+		$dbUpdateWasSuccessful =
+			$this->executeOrCatchExceptionAndReturnFalse($statement, $parameterSubstitutions);
 
 		if ($dbUpdateWasSuccessful) {
 			return TRUE;
@@ -240,7 +247,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$dbHandle = $this->db->getDbHandle();
 
 		$statement = $dbHandle->prepare($this->config->getQueryCreateUser());
-		$dbUpdateWasSuccessful = $statement->execute([
+		$dbUpdateWasSuccessful = $this->executeOrCatchExceptionAndReturnFalse($statement, [
 			':username' => $providedUsername,
 			':password_hash' => $this->hashPassword($providedPassword)]);
 
@@ -337,5 +344,26 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return FALSE;
 		}
 		return $hashedPassword;
+	}
+
+	/**
+	 * Helper function that catches SQL exceptions for methods that should return FALSE on failure.
+	 * If exception is not caught here, it bubbles up to Nextcloud's dispatcher and the user manager
+	 * is not aware that a user backend method failed.
+	 *
+	 * @param \PDOStatement $pdoStatement the statement to execute
+	 * @param array $parameterSubstitutions the substitution parameters
+	 *
+	 * @return bool|\PDOStatement
+	 */
+	private function executeOrCatchExceptionAndReturnFalse(\PDOStatement $pdoStatement, array $parameterSubstitutions) {
+		try {
+			$pdoStatement->execute($parameterSubstitutions);
+		}
+		catch (\PDOException $e) {
+			$this->logger->logException($e, $this->logContext);
+			return FALSE;
+		}
+		return $pdoStatement;
 	}
 }
