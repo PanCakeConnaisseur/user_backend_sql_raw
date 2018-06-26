@@ -129,7 +129,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	public function userExists($providedUsername) {
 		$statement = $this->db->getDbHandle()->prepare($this->config->getQueryUserExists());
-		$this->executeOrCatchExceptionAndReturnFalse($statement, ['username' => $providedUsername]);
+		$statement->execute(['username' => $providedUsername]);
 		$doesUserExist = $statement->fetchColumn();
 		return $doesUserExist;
 	}
