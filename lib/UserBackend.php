@@ -104,14 +104,14 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$limitSegment = '';
 		} else {
 			$limitSegment = ' LIMIT :limit';
-			$parameterSubstitutions['limit'] = $limit;
+			$parameterSubstitutions['limit'] = intval($limit);
 		}
 
 		if (is_null($offset)) {
 			$offsetSegment = '';
 		} else {
 			$offsetSegment = ' OFFSET :offset';
-			$parameterSubstitutions['offset'] = $offset;
+			$parameterSubstitutions['offset'] = intval($offset);
 		}
 
 		$queryFromConfig = $this->config->getQueryGetUsers();
@@ -119,7 +119,13 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$finalQuery = $queryFromConfig . $limitSegment . $offsetSegment;
 
 		$statement = $this->db->getDbHandle()->prepare($finalQuery);
-		$statement->execute($parameterSubstitutions);
+		foreach ($parameterSubstitutions as $param => $val) {
+			if (is_int ($val))
+				$statement->bindValue(":".$param, $val, \PDO::PARAM_INT);
+			else
+				$statement->bindValue(":".$param, $val, \PDO::PARAM_STR);
+		}
+		$statement->execute();
 		// Setting the second parameter to 0 will ensure, that only the first
 		// column is returned.
 		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
