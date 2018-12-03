@@ -76,7 +76,7 @@ There are three types of configuration parameters
 - For all queries that read data, only the first column is interpreted.
 - Two queries need a little bit of attention:
 	1. `user_exists` should return a boolean. See the example on how to do this properly.
-	2. `get_users` is a query that search for usernames (e.g. *bob*) and display names (e.g. *Bob Bobson*) and returns usernames
+	2. `get_users` is a query that searches for usernames (e.g. *bob*) and display names (e.g. *Bob Bobson*) and returns usernames
 		- make sure the query looks through both usernames **and** display names, see example config
 		- do case insensitive pattern matching, i.e. `ILIKE` (`ILIKE` only available in PostgreSQL)
 		- query must not already contain a `LIMIT` or `OFFSET`. They will be added to the end of your query by
