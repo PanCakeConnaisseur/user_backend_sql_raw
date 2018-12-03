@@ -42,8 +42,8 @@ This app has no user interface. All configuration is done via Nextcloud's system
 
 
 There are three types of configuration parameters
-1. **connection parameters** for database access
-	- *db_type* is optional and defaults to `postgresql`
+1. **database connection** parameters
+	- *db_type* is optional and defaults to `postgresql`. The only other valid non-empty value is `mariadb`, which can be used for MySQL, too.
 	- *db_host* is optional and defaults to `localhost`
 	- *db_port* is optional and defaults to `5432`
 	- *db_name*, *db_user* and *db_password* are mandatory
