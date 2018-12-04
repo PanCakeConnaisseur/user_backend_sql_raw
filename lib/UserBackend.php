@@ -183,7 +183,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$this->logger->error('Setting a new password for \''
 				. $username . '\' was rejected because it is longer than '
 				. Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH . ' characters. This is '
-				. 'to prevent denial of service attacks against the serve.',
+				. 'to prevent denial of service attacks against the server.',
 				$this->logContext);
 			return FALSE;
 		}
