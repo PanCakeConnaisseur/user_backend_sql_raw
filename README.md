@@ -103,6 +103,8 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
 - This app also logs non-SQL configuration errors, e.g. missing db name.
 
 # Release Notes
+## 1.0.5
+- Fix an issue where the MariaDB/MySQL driver would not handle a LIMIT or OFFSET parameter properly.
 ## 1.0.4
 - Fixed code integrity check issues.
 ## 1.0.3
