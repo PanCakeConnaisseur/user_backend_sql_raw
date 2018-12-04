@@ -98,28 +98,25 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		// wildcards in the LIKE expression. Therefore they will be escaped.
 		$searchString = $this->escapePercentAndUnderscore($searchString);
 
-		$parameterSubstitutions['search'] = '%' . $searchString . '%';
-
-		if (is_null($limit)) {
-			$limitSegment = '';
-		} else {
-			$limitSegment = ' LIMIT :limit';
-			$parameterSubstitutions['limit'] = $limit;
-		}
-
-		if (is_null($offset)) {
-			$offsetSegment = '';
-		} else {
-			$offsetSegment = ' OFFSET :offset';
-			$parameterSubstitutions['offset'] = $offset;
-		}
-
 		$queryFromConfig = $this->config->getQueryGetUsers();
-
+		isset($limit) ? $limitSegment = ' LIMIT :limit' : $limitSegment = '';
+		isset($offset) ? $offsetSegment = ' OFFSET :offset' : $offsetSegment = '';
 		$finalQuery = $queryFromConfig . $limitSegment . $offsetSegment;
 
 		$statement = $this->db->getDbHandle()->prepare($finalQuery);
-		$statement->execute($parameterSubstitutions);
+
+		// Because MariaDB can not handle string parameters for LIMIT/OFFSET we have to bind the
+		// values "manually" instead of passing an array to execute(). This is another instance of
+		// MariaDB making the code "uglier".
+		$statement->bindValue(':search', '%' . $searchString . '%', \PDO::PARAM_STR);
+		if (isset($limit)) {
+			$statement->bindValue(':limit', intval($limit), \PDO::PARAM_INT);
+		}
+		if (isset($offset))  {
+			$statement->bindValue(':offset', intval($offset), \PDO::PARAM_INT);
+		}
+		$statement->execute();
+
 		// Setting the second parameter to 0 will ensure, that only the first
 		// column is returned.
 		$matchedUsers = $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
