@@ -95,7 +95,7 @@ web server. Otherwise users can supply passwords with 10000 or more characters w
  
 ## Troubleshooting
 - **TL;DR**: check the log file
-- This app has no UI, therefore all error output (exceptions and explicit logs) is written to [Nextcloud's log](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/logging_configuration.html), 
+- This app has no UI, therefore all error output (exceptions and explicit logs) is written to [Nextcloud's log](https://docs.nextcloud.com/server/16/admin_manual/configuration_server/logging_configuration.html), 
 by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
 - There are no semantic checks for the SQL queries. As soon as a query string
   is not empty the app assumes that it is a query and executes it. It's likely that you will 
