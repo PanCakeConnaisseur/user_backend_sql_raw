@@ -104,6 +104,8 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
 - This app also logs non-SQL configuration errors, e.g. missing db name.
 
 # Release Notes
+## 1.0.8
+- Add support for Argon2id password hashing
 ## 1.0.7
 - Compatibility with Nextcloud 16
 ## 1.0.6
