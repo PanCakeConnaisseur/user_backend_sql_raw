@@ -322,6 +322,37 @@ class UserBackendTest extends TestCase {
 		self::assertSame($userObject, $actualUser, 'Password check using Argon2i failed.');
 	}
 
+    /**
+     * @requires PHP 7.3
+     */
+    public function testPasswordInArgon2idFormatCanBeSetAndChecked() {
+        // change user backend to use argon2id
+        $this->userBackend = new UserBackend($this->getLogStub()
+            , $this->getMockAppConfig('argon2id')
+            , $this->getMockDb());
+
+        $userManager = \OC::$server->getUserManager();
+        $userManager->registerBackend($this->userBackend);
+
+        $usernameForTest = 'alice';
+        $passwordForTest = '%ran!34;;;!783-_';
+
+        $userObject = $userManager->get($usernameForTest);
+        self::assertTrue($userObject->setPassword($passwordForTest));
+
+        // check that password hash in db actually starts with $argon2id$ and therefore
+        // is a argon2id hash
+        $statement = $this->dbHandle->prepare('SELECT password_hash FROM users WHERE username = :username');
+        $statement->execute(['username' => $usernameForTest]);
+        $retrievedPasswordHash = $statement->fetchColumn();
+        self::assertStringStartsWith('$argon2id$', $retrievedPasswordHash, 'Saved password hash is not in argon2id format');
+
+        // check that Nextcloud's password checking algorithm. Nextcloud returns
+        // the user object if password check succeeded.
+        $actualUser = $userManager->checkPassword('alice', $passwordForTest);
+        self::assertSame($userObject, $actualUser, 'Password check using Argon2id failed.');
+    }
+
 	public function testPasswordsThatAreLongerThan100CharactersAreRejectedWithFalse() {
 		$userManager = \OC::$server->getUserManager();
 		$userManager->registerBackend($this->userBackend);

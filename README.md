@@ -6,7 +6,7 @@ You can authenticate, create, delete users, change their password or display nam
 
 In contrast to the app *SQL user backend*, you write the SQL queries yourself. You are not limited by assumptions that app authors made about how your db is structured.
 
-The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt and the state-of-the-art Argon2i. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.
+The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt, Argon2i and Argon2id. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.
 
 This app supports PostgreSQL and MariaDB/MySQL.
 
@@ -61,8 +61,8 @@ There are three types of configuration parameters
 	`user_exists` and `get_users`.
 3. **hash algorithm** (`hash_algorithm_for_new_passwords`) used for creation of new passwords
 	- This one is optional and, if you leave it empty, defaults to `bcrypt` ($2y$).
-	- The other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT, SHA-512-CRYPT and Argon2i. 
-	The config values are `md5`, `sha256`, `sha512`, `argon2i` respectively, e.g. 
+	- The other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT, SHA-512-CRYPT, Argon2i and Argon2id. 
+	The config values are `md5`, `sha256`, `sha512`, `argon2i`, `argon2id` respectively, e.g. 
 	  `'hash_algorithm_for_new_passwords' => 'sha512',`. Or you can explicitly set `bcrypt`.
 	- This parameter only sets the hash algorithm used for the creation of new passwords. For
 	 checking a password the hash algorithm will be [detected automatically](http://php.net/manual/en/function.password-verify.php)
@@ -71,6 +71,7 @@ There are three types of configuration parameters
 		user's password is changed, it will be updated to the configured hash algorithm. This eases 
 		 migration to more modern algorithms.
 	- Argon2i is only supported by PHP 7.2.0 and higher.
+	- Argon2id is only supported by PHP 7.3.0 and higher.
 
 ### Queries
 - For all queries that read data, only the first column is interpreted.

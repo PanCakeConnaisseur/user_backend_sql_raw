@@ -291,6 +291,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$hashedPassword = $this->hashWithModernMethod($password, PASSWORD_BCRYPT);
 		} elseif ($algorithmFromConfig === 'argon2i') {
 			$hashedPassword = $this->hashWithModernMethod($password, PASSWORD_ARGON2I);
+		} elseif ($algorithmFromConfig === 'argon2id') {
+			$hashedPassword = $this->hashWithModernMethod($password, PASSWORD_ARGON2ID);
 		} elseif ($algorithmFromConfig === 'sha512'
 			|| $algorithmFromConfig === 'sha256'
 			|| $algorithmFromConfig === 'md5') {
@@ -300,8 +302,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	}
 
 	/**
-	 * Creates password with the modern password_hash() method. Supports Bcrypt
-	 * and Argon2i.
+	 * Creates password with the modern password_hash() method. Supports Bcrypt, Argon2i
+     * and Argon2id
 	 * @param $password string the password to hash
 	 * @param $algorithm int the algorithm to use for hashing the password
 	 * @return bool|string the hashed password or FALSE on failure

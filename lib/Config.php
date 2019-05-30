@@ -155,7 +155,7 @@ class Config {
 			throw new \UnexpectedValueException('The config key '
 				. self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS. ' is set '
 				.'to '.$hashAlgorithmFromConfig.'. This value is invalid. Only '
-				.'md5, sha256, sha512, bcrypt and argon2i are supported.');
+				.'md5, sha256, sha512, bcrypt, argon2i and argon2id are supported.');
 		}
 
 		if ($normalizedHashAlgorithm === 'argon2i'
@@ -165,6 +165,14 @@ class Config {
 				.'passwords. Argon2i is only available in PHP version 7.2.0 and'
 				.' higher, but your PHP version is '.PHP_VERSION.'.');
 		}
+
+        if ($normalizedHashAlgorithm === 'argon2id'
+            && version_compare(PHP_VERSION, '7.3.0', '<')) {
+            throw new \UnexpectedValueException(
+                'You specified Argon2id as the hash algorithm for new '
+                .'passwords. Argon2id is only available in PHP version 7.3.0 and'
+                .' higher, but your PHP version is '.PHP_VERSION.'.');
+        }
 
 		return $normalizedHashAlgorithm;
 	}
@@ -287,7 +295,8 @@ class Config {
 			|| $hashAlgorithm === 'sha256'
 			|| $hashAlgorithm === 'sha512'
 			|| $hashAlgorithm === 'bcrypt'
-			|| $hashAlgorithm === 'argon2i';
+			|| $hashAlgorithm === 'argon2i'
+			|| $hashAlgorithm === 'argon2id';
 	}
 
 	/**
