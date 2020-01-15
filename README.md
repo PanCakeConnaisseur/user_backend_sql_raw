@@ -104,6 +104,8 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
 - This app also logs non-SQL configuration errors, e.g. missing db name.
 
 # Release Notes
+## 1.0.10
+- Compatibility with Nextcloud 18
 ## 1.0.9
 - Compatibility with Nextcloud 17
 ## 1.0.8
