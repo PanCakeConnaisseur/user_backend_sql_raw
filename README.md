@@ -102,29 +102,3 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*.
   is not empty the app assumes that it is a query and executes it. It's likely that you will 
   have typos in your SQL queries. Check the log to find out if and why SQL queries fail.
 - This app also logs non-SQL configuration errors, e.g. missing db name.
-
-# Release Notes
-## 1.0.10
-- Compatibility with Nextcloud 18
-## 1.0.9
-- Compatibility with Nextcloud 17
-## 1.0.8
-- Add support for Argon2id password hashing
-## 1.0.7
-- Compatibility with Nextcloud 16
-## 1.0.6
-- Compatibility with Nextcloud 15
-## 1.0.5
-- Fix an issue where the MariaDB/MySQL driver would not handle a LIMIT or OFFSET parameter properly.
-## 1.0.4
-- Fixed code integrity check issues.
-## 1.0.3
-- Compatibility with Nextcloud 14
-## 1.0.2
-- Fixed a typo bug introduced in 1.0.1
-## 1.0.1
-- Fixed a bug where for some (non security related) operations, SQL errors would prevent Nextcloud
-from realizing that that operation failed.
-## 1.0.0
-- Named parameter in query `get_users` was `:username`, is now `:search` because you search for
-user names and display names.
