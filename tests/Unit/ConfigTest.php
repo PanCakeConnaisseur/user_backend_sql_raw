@@ -85,11 +85,24 @@ final class ConfigTest extends TestCase {
 		self::assertEquals($expectedDbType, $actualDbType);
 	}
 
+	public function testDefaultSockIsUsedWhenThisParameterIsNotSet() {
+		$this->nextcloudConfigStub->method('getSystemValue')
+		->willReturn(array(
+				'the_configuration_is_not_empty' => 'but also contains no usable keys'
+		));
+
+		$config = new Config($this->logStub, $this->nextcloudConfigStub);
+
+		$expectedSock = Config::DEFAULT_DB_SOCK;
+		$actualSock = $config->getDbSock();
+		self::assertEquals($expectedSock, $actualSock);
+	}
+
 	public function testDefaultHostIsUsedWhenThisParameterIsNotSet() {
 		$this->nextcloudConfigStub->method('getSystemValue')
-			->willReturn(array(
+		->willReturn(array(
 				'the_configuration_is_not_empty' => 'but also contains no usable keys'
-			));
+		));
 
 		$config = new Config($this->logStub, $this->nextcloudConfigStub);
 
@@ -296,6 +309,7 @@ final class ConfigTest extends TestCase {
 				'db_user' => 'JohnDoe',
 				'db_password' => 'bpd_N(z6%aT&$<Km',
 				'db_host' => 'db.cluster.de',
+				'db_sock' => '/tmp/mysqld.sock',
 				'queries' =>
 					array(
 						'user_exists' => 'SELECT EXISTS(SELECT 1 FROM virtual_users_fqda WHERE fqda = :username)',
@@ -311,6 +325,7 @@ final class ConfigTest extends TestCase {
 		self::assertEquals('JohnDoe', $config->getDbUser());
 		self::assertEquals('bpd_N(z6%aT&$<Km', $config->getDbPassword());
 		self::assertEquals('db.cluster.de', $config->getDbHost());
+		self::assertEquals('/tmp/mysqld.sock', $config->getDbSock());
 		self::assertEquals(
 			'SELECT EXISTS(SELECT 1 FROM virtual_users_fqda WHERE fqda = :username)'
 			, $config->getQueryUserExists());

@@ -34,9 +34,15 @@ class Mariadb extends Db {
 	}
 
 	protected function assembleDsn() {
-		return 'mysql:host=' . $this->config->getDbHost()
+		if ($this->config->getDbSock()) {
+			return 'mysql:unix_socket=' . $this->config->getDbSock()
+			. ';dbname=' . $this->config->getDbName()
+			. ';charset=' . $this->config->getMariadbCharset();
+		} else {
+			return 'mysql:host=' . $this->config->getDbHost()
 			. ';port=' . $this->config->getDbPort()
 			. ';dbname=' . $this->config->getDbName()
 			. ';charset=' . $this->config->getMariadbCharset();
+		}
 	}
 }
