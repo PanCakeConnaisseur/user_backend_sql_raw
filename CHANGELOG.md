@@ -5,7 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
+## [1.0.11] - 2020-09-17
+### Added
+- Compatibility with Nextcloud 19
+
+### Changed
 - Migrated changelog from README.md to CHANGELOG.md
+
 
 ## [1.0.10] - 2020-01-15
 ### Added
