@@ -1,6 +1,5 @@
 # User Backend SQL Raw
-This is an app for Nextcloud that offers user management and authentication with arbitrary SQL 
-queries. 
+This is an app for Nextcloud that offers user management and authentication with arbitrary SQL queries. 
 
 You can authenticate, create, delete users, change their password or display name, basically do (almost) everything that Nextcloud can do with users.
 
@@ -10,7 +9,7 @@ The app uses prepared statements and is written to be secure by default to preve
 
 This app supports PostgreSQL and MariaDB/MySQL.
 
-See [release notes](#release-notes) below for (possibly breaking) changes in new versions.
+See [CHANGELOG.md] for changes in newer versions. This app follows semantic versioning and there should not be any breaking changes unless the major version has changed. 
 
 ## Configuration
 This app has no user interface. All configuration is done via Nextcloud's system configuration in
@@ -89,8 +88,8 @@ There are three types of configuration parameters
 
 ## Security
 - Password length is limited to 100 characters to prevent denial of service attacks against the 
-web server. Otherwise users can supply passwords with 10000 or more characters which can cause a very
- high load for the server when they are run through hashing functions.
+web server. Otherwise malicious users could feed your Nextcloud instance with passwords that have a length of tens of thousands of characters which could cause a very
+ high load due to expensive password hashing operations.
 - The username during user creation (`create_user`) and the display name (`set_display_name`) are
  not limited in length. You should limit this on the db layer.
  
