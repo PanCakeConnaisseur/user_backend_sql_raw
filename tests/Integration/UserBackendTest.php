@@ -29,6 +29,7 @@ use OCA\UserBackendSqlRaw\UserBackend;
 use OCP\App\IAppManager;
 use OCP\AppFramework\App;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class UserBackendTest extends TestCase {
 
@@ -454,7 +455,7 @@ class UserBackendTest extends TestCase {
 	//TODO: Test implementsActions()
 
 	private function getLogStub() {
-		return $this->getMockBuilder(\OCP\ILogger::class)->getMock();
+		return $this->getMockBuilder(LoggerInterface::class)->getMock();
 	}
 
 	private function getMockAppConfig($passwordHashForNewPasswords = 'bcrypt'): Config {

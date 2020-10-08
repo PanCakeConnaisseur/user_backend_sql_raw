@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+
+### Changed
+* app now requires PHP >=7.3
+
+### Removed
+* support for Nextcloud < 20, due to migration to newer Nextcloud APIs. Older versions of the app will remain in the [Nextcloud app store](https://apps.nextcloud.com/apps/user_backend_sql_raw) and support older versions of Nextcloud. Alternatively you can find all versions in the [releases section](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases).
 
 ## [1.0.12] - 2020-10-07
 ### Added

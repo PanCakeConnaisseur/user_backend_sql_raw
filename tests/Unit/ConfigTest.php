@@ -21,9 +21,11 @@
 
 namespace OCA\UserBackendSqlRaw\tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use \OCA\UserBackendSqlRaw\Config;
+use OCA\UserBackendSqlRaw\Config;
 use OCP\IConfig;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+
 
 final class ConfigTest extends TestCase {
 
@@ -32,7 +34,7 @@ final class ConfigTest extends TestCase {
 
 	protected function setUp() {
 		parent::setUp();
-		$this->logStub = $this->createMock(\OC\Log::class);
+		$this->logStub = $this->createMock(LoggerInterface::class);
 		$this->nextcloudConfigStub = $this->createMock(IConfig::class);
 	}
 

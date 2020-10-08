@@ -21,17 +21,17 @@
 
 namespace OCA\UserBackendSqlRaw;
 
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 use OC\User\Backend;
 
 class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
+    /** @var LoggerInterface */
 	private $logger;
-	private $logContext = ['app' => 'user_backend_sql_raw'];
 	private $config;
 	private $db;
 
-	public function __construct(ILogger $logger, Config $config, Db $db) {
+	public function __construct(LoggerInterface $logger, Config $config, Db $db) {
 		$this->logger = $logger;
 		$this->config = $config;
 		// Don't get db handle (dbo object) here yet, so that it is only created
@@ -161,8 +161,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return TRUE;
 		} else {
 			$this->logger->error('Setting a new display name for username \''
-				. $username . '\' failed, because the db update failed.'
-				, $this->logContext);
+				. $username . '\' failed, because the db update failed.');
 			return FALSE;
 		}
 	}
@@ -180,8 +179,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$this->logger->error('Setting a new password for \''
 				. $username . '\' was rejected because it is longer than '
 				. Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH . ' characters. This is '
-				. 'to prevent denial of service attacks against the server.',
-				$this->logContext);
+				. 'to prevent denial of service attacks against the server.');
 			return FALSE;
 		}
 
@@ -194,7 +192,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			$this->logger->critical('Setting a new password failed,'
 				. ' because the hashing function \''
 				. $this->config->getHashAlgorithmForNewPasswords()
-				. '\' failed.', $this->logContext);
+				. '\' failed.');
 			return FALSE;
 		}
 
@@ -215,8 +213,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return TRUE;
 		} else {
 			$this->logger->error('Setting a new password for username \'' . $username
-				. '\' failed, because the db update failed.',
-				$this->logContext);
+				. '\' failed, because the db update failed.');
 			return FALSE;
 		}
 	}
@@ -252,8 +249,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 			return TRUE;
 		} else {
 			$this->logger->error('Creating the user with username \''
-				. $providedUsername . '\' failed, because the db update failed.',
-				$this->logContext);
+				. $providedUsername . '\' failed, because the db update failed.');
 			return FALSE;
 
 		}
@@ -355,14 +351,16 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 *
 	 * @return bool|\PDOStatement
 	 */
-	private function executeOrCatchExceptionAndReturnFalse(\PDOStatement $pdoStatement, array $parameterSubstitutions) {
-		try {
-			$pdoStatement->execute($parameterSubstitutions);
-		}
-		catch (\PDOException $e) {
-			$this->logger->logException($e, $this->logContext);
-			return FALSE;
-		}
-		return $pdoStatement;
-	}
+    private function executeOrCatchExceptionAndReturnFalse(\PDOStatement $pdoStatement, array $parameterSubstitutions)
+    {
+        try {
+            $pdoStatement->execute($parameterSubstitutions);
+        } catch (\PDOException $exception) {
+            $this->logger->error('A SQL error occurred during a user_backend_sql_raw operation. '
+                . 'See SQLSTATE exception above for details.'
+                , ['exception' => $exception]);
+            return FALSE;
+        }
+        return $pdoStatement;
+    }
 }
