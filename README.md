@@ -9,7 +9,7 @@ The app uses prepared statements and is written to be secure by default to preve
 
 This app supports PostgreSQL and MariaDB/MySQL.
 
-See [CHANGELOG.md] for changes in newer versions. This app follows semantic versioning and there should not be any breaking changes unless the major version has changed. 
+See [CHANGELOG.md](CHANGELOG.md) for changes in newer versions. This app follows semantic versioning and there should not be any breaking changes unless the major version has changed. 
 
 ## Configuration
 This app has no user interface. All configuration is done via Nextcloud's system configuration in
