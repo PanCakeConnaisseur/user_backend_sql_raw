@@ -284,7 +284,7 @@ final class ConfigTest extends TestCase {
 
 		$this->expectException(\UnexpectedValueException::class);
 		$config = new Config($this->logStub, $this->nextcloudConfigStub);
-		$config->getDbPassword();
+		$config->getDbType();
 	}
 
 	// Test that checks if multiple parameters are recognized simultaneously.

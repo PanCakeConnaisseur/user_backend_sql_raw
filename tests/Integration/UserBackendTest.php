@@ -30,11 +30,12 @@ use OCP\App\IAppManager;
 use OCP\AppFramework\App;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Psr\Container\ContainerInterface;
 
 class UserBackendTest extends TestCase {
 
 	const APP_ID = 'user_backend_sql_raw';
-	/** @var SimpleContainer */
+	/** @var ContainerInterface */
 	private $container;
 	/** @var IAppManager */
 	private $appManager;
@@ -47,9 +48,10 @@ class UserBackendTest extends TestCase {
 		parent::setUp();
 
 		$app = new App(self::APP_ID);
-		$app->getContainer()->getServer()->getUserManager()->clearBackends();
+
+		$app->getContainer()->get('OCP\IUserManager')->clearBackends();
 		$this->container = $app->getContainer();
-		$this->appManager = $this->container->query('OCP\App\IAppManager');
+		$this->appManager = $this->container->get('OCP\App\IAppManager');
 		$this->userBackend = new UserBackend($this->getLogStub()
 			, $this->getMockAppConfig()
 			, $this->getMockDb());
@@ -72,9 +74,9 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testUserBackendCanBeRegistered() {
-		\OC::$server->getUserManager()->registerBackend($this->userBackend);
+		$this->container->get('OCP\IUserManager')->registerBackend($this->userBackend);
 
-		$registeredUserBackends = \OC::$server->getUserManager()->getBackends();
+		$registeredUserBackends = $this->container->get('OCP\IUserManager')->getBackends();
 		$foundBackend = FALSE;
 		foreach ($registeredUserBackends as $userBackend) {
 			if ($userBackend instanceof UserBackend) {
@@ -86,8 +88,8 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testUserBackendNameIsCorrect() {
-		\OC::$server->getUserManager()->registerBackend($this->userBackend);
-		$registeredUserBackends = \OC::$server->getUserManager()->getBackends();
+		$this->container->get('OCP\IUserManager')->registerBackend($this->userBackend);
+		$registeredUserBackends = $this->container->get('OCP\IUserManager')->getBackends();
 
 		foreach ($registeredUserBackends as $userBackend) {
 			if ($userBackend instanceof UserBackend) {
@@ -98,15 +100,15 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testExistingUserIsRecognizedByUsername() {
-		\OC::$server->getUserManager()->registerBackend($this->userBackend);
+		$this->container->get('OCP\IUserManager')->registerBackend($this->userBackend);
 
-		self::assertTrue(\OC::$server->getUserManager()->userExists('alice'));
-		self::assertTrue(\OC::$server->getUserManager()->userExists('bob.robert@black123.com'));
-		self::assertTrue(\OC::$server->getUserManager()->userExists('chris.smith@black.org'));
+		self::assertTrue($this->container->get('OCP\IUserManager')->userExists('alice'));
+		self::assertTrue($this->container->get('OCP\IUserManager')->userExists('bob.robert@black123.com'));
+		self::assertTrue($this->container->get('OCP\IUserManager')->userExists('chris.smith@black.org'));
 	}
 
 	public function testReturnedUserObjectsHaveCorrectUid() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$alice = $userManager->get('alice');
@@ -121,44 +123,44 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testExistingUserIsRecognizedByDisplayNameSubStrings() {
-		\OC::$server->getUserManager()->registerBackend($this->userBackend);
+		$this->container->get('OCP\IUserManager')->registerBackend($this->userBackend);
 
-		$searchResult = \OC::$server->getUserManager()->searchDisplayName('Alice');
+		$searchResult = $this->container->get('OCP\IUserManager')->searchDisplayName('Alice');
 		self::assertSame('alice', $searchResult[0]->getUID());
 
-		$searchResult = \OC::$server->getUserManager()->searchDisplayName('Alice Dorothea');
+		$searchResult = $this->container->get('OCP\IUserManager')->searchDisplayName('Alice Dorothea');
 		self::assertSame('alice', $searchResult[0]->getUID());
 
-		$searchResult = \OC::$server->getUserManager()->searchDisplayName('Alice Dorothea Merkel');
+		$searchResult = $this->container->get('OCP\IUserManager')->searchDisplayName('Alice Dorothea Merkel');
 		self::assertSame('alice', $searchResult[0]->getUID());
 
-		$searchResult = \OC::$server->getUserManager()->searchDisplayName('thea');
+		$searchResult = $this->container->get('OCP\IUserManager')->searchDisplayName('thea');
 		self::assertSame('alice', $searchResult[0]->getUID());
 
-		$searchResult = \OC::$server->getUserManager()->searchDisplayName('Bobson-Jason');
+		$searchResult = $this->container->get('OCP\IUserManager')->searchDisplayName('Bobson-Jason');
 		self::assertSame('bob.robert@black123.com', $searchResult[0]->getUID());
 	}
 
 	public function testUserSearchCanReturnMoreThanOneMatchedUser() {
-		\OC::$server->getUserManager()->registerBackend($this->userBackend);
+		$this->container->get('OCP\IUserManager')->registerBackend($this->userBackend);
 
-		$searchResult = \OC::$server->getUserManager()->search('black');
+		$searchResult = $this->container->get('OCP\IUserManager')->search('black');
 		self::assertArrayHasKey('bob.robert@black123.com', $searchResult);
 		self::assertArrayHasKey('chris.smith@black.org', $searchResult);
 		self::assertEquals(2, count($searchResult));
 	}
 
 	public function testDisplayNameSearchCanReturnMoreThanOneMatch() {
-		\OC::$server->getUserManager()->registerBackend($this->userBackend);
+		$this->container->get('OCP\IUserManager')->registerBackend($this->userBackend);
 
-		$searchResult = \OC::$server->getUserManager()->searchDisplayName('th');
+		$searchResult = $this->container->get('OCP\IUserManager')->searchDisplayName('th');
 		self::assertSame('Alice Dorothea Merkel', $searchResult[0]->getDisplayName());
 		self::assertSame('Chris Smith', $searchResult[1]->getDisplayName());
 		self::assertEquals(2, count($searchResult));
 	}
 
 	public function testWrongPasswordsAreRejected() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		// the correct password is "alice123"
@@ -186,7 +188,7 @@ class UserBackendTest extends TestCase {
 			, $this->getMockAppConfig('md5')
 			, $this->getMockDb());
 
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'alice';
@@ -214,7 +216,7 @@ class UserBackendTest extends TestCase {
 			, $this->getMockAppConfig('sha256')
 			, $this->getMockDb());
 
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'alice';
@@ -242,7 +244,7 @@ class UserBackendTest extends TestCase {
 			, $this->getMockAppConfig('sha512')
 			, $this->getMockDb());
 
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'alice';
@@ -270,7 +272,7 @@ class UserBackendTest extends TestCase {
 			, $this->getMockAppConfig('bcrypt')
 			, $this->getMockDb());
 
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'alice';
@@ -301,7 +303,7 @@ class UserBackendTest extends TestCase {
 			, $this->getMockAppConfig('argon2i')
 			, $this->getMockDb());
 
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'alice';
@@ -332,7 +334,7 @@ class UserBackendTest extends TestCase {
             , $this->getMockAppConfig('argon2id')
             , $this->getMockDb());
 
-        $userManager = \OC::$server->getUserManager();
+        $userManager = $this->container->get('OCP\IUserManager');
         $userManager->registerBackend($this->userBackend);
 
         $usernameForTest = 'alice';
@@ -355,7 +357,7 @@ class UserBackendTest extends TestCase {
     }
 
 	public function testPasswordsThatAreLongerThan100CharactersAreRejectedWithFalse() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'alice';
@@ -371,7 +373,7 @@ class UserBackendTest extends TestCase {
 
 
 	public function testUserCanBeCreatedAndCanLogin() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$usernameForTest = 'newuser@example.com';
@@ -387,7 +389,7 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testUserCanBeDeletedAndCanNotLoginAfterwards() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		// can login before deletion (alice already exists in mock database)
@@ -405,7 +407,7 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testDisplayNameOfUserCanBeChanged() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$aliceUserObject = $userManager->get('alice');
@@ -414,7 +416,7 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testDisplayNameCanContainNonAsciiCharacters() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$aliceUserObject = $userManager->get('alice');
@@ -425,7 +427,7 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testUsersCanBeCounted() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		$countResult = $userManager->countUsers();
@@ -434,14 +436,14 @@ class UserBackendTest extends TestCase {
 	}
 
 	public function testUserBackendSaysThatItHasUserListings() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		self::assertTrue($this->userBackend->hasUserListings());
 	}
 
 	public function testHomeFolderForUserIsReturned() {
-		$userManager = \OC::$server->getUserManager();
+		$userManager = $this->container->get('OCP\IUserManager');
 		$userManager->registerBackend($this->userBackend);
 
 		self::assertSame('alice'
