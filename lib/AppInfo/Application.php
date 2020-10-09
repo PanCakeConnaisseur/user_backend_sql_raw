@@ -50,7 +50,6 @@ class Application extends App implements IBootstrap
          * https://docs.nextcloud.com/server/latest/developer_manual/basics/dependency_injection.html#how-to-deal-with-interface-and-primitive-type-parameters
          */
         $context->registerService('OCA\UserBackendSqlRaw\Db', function (ContainerInterface $container) {
-
             /** @var \OCA\UserBackendSqlRaw\Config $config */
             $config = $container->get('OCA\UserBackendSqlRaw\Config');
             return $container->get('OCA\UserBackendSqlRaw\Dbs\\' . ucfirst($config->getDbType()));
