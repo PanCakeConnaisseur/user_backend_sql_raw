@@ -21,17 +21,19 @@
 
 namespace OCA\UserBackendSqlRaw\Tests\Integration;
 
-use OC\AppFramework\Utility\SimpleContainer;
 use OC\User\User;
 use OCA\UserBackendSqlRaw\Config;
-use OCA\UserBackendSqlRaw\Tests\Integration\Dbs\SqliteMemoryTestDb;
+use OCA\UserBackendSqlRaw\Tests\Dbs\SqliteMemoryTestDb;
 use OCA\UserBackendSqlRaw\UserBackend;
 use OCP\App\IAppManager;
 use OCP\AppFramework\App;
-use PHPUnit\Framework\TestCase;
+use Test\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Container\ContainerInterface;
 
+/**
+ * @group DB
+ */
 class UserBackendTest extends TestCase {
 
 	const APP_ID = 'user_backend_sql_raw';
@@ -46,11 +48,9 @@ class UserBackendTest extends TestCase {
 
     protected function setUp(): void {
 		parent::setUp();
-
-		$app = new App(self::APP_ID);
-
-		$app->getContainer()->get('OCP\IUserManager')->clearBackends();
+		$app = new \OCA\UserBackendSqlRaw\AppInfo\Application();
 		$this->container = $app->getContainer();
+		$this->container->get('OCP\IUserManager')->clearBackends();
 		$this->appManager = $this->container->get('OCP\App\IAppManager');
 		$this->userBackend = new UserBackend($this->getLogStub()
 			, $this->getMockAppConfig()

@@ -19,7 +19,7 @@
  *
  */
 
-namespace OCA\UserBackendSqlRaw\tests\Unit;
+namespace OCA\UserBackendSqlRaw\Tests\Unit;
 
 use OCA\UserBackendSqlRaw\Config;
 use OCP\IConfig;

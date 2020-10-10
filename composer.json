@@ -1,31 +1,31 @@
 {
-  "name": "pancakeconnaisseur/user-backend-sql-raw",
-  "description": "User management and authentication for Nextcloud through arbitrary SQL queries",
-  "type": "project",
-  "license": "AGPL-3.0-or-later",
-  "authors": [
-    {
-      "name": "Alexey Abel",
-      "email": "dev@abelonline.de"
-    }
-  ],
-  "homepage": "https://github.com/PanCakeConnaisseur/user_backend_sql_raw",
-  "support": {
-    "issues": "https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues"
-  },
-  "autoload": {
-    "psr-4": {
-      "OCA\\UserBackendSqlRaw\\" : "lib/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "OCA\\UserBackendSqlRaw\\Tests\\" : "tests/"
-    }
-  },
-  "require": {},
-  "require-dev": {
-    "php": "^7.3",
-    "phpunit/phpunit": "^9"
-  }
+	"name": "pancakeconnaisseur/user-backend-sql-raw",
+	"description": "User management and authentication for Nextcloud through arbitrary SQL queries",
+	"type": "project",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Alexey Abel",
+			"email": "dev@abelonline.de"
+		}
+	],
+	"homepage": "https://github.com/PanCakeConnaisseur/user_backend_sql_raw",
+	"support": {
+		"issues": "https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues"
+	},
+	"autoload": {
+		"psr-4": {
+			"OCA\\UserBackendSqlRaw\\": "lib/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"OCA\\UserBackendSqlRaw\\Tests\\": "tests/"
+		}
+	},
+	"require": {},
+	"require-dev": {
+		"php": "^7.3",
+		"phpunit/phpunit": "^9"
+	}
 }
