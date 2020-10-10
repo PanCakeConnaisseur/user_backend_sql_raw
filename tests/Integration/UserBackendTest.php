@@ -27,6 +27,7 @@ use OCA\UserBackendSqlRaw\Tests\Dbs\SqliteMemoryTestDb;
 use OCA\UserBackendSqlRaw\UserBackend;
 use OCP\App\IAppManager;
 use OCP\AppFramework\App;
+use OCP\IConfig;
 use Test\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Container\ContainerInterface;
@@ -45,13 +46,20 @@ class UserBackendTest extends TestCase {
 	private $userBackend;
 	/** @var \PDO */
 	private $dbHandle;
+	/** @var IConfig */
+	private $nextcloudConfig;
 
     protected function setUp(): void {
 		parent::setUp();
 		$app = new \OCA\UserBackendSqlRaw\AppInfo\Application();
 		$this->container = $app->getContainer();
-		$this->container->get('OCP\IUserManager')->clearBackends();
+
+		$this->nextcloudConfig = $this->container->get('OCP\IConfig');
+		$this->nextcloudConfig->setSystemValue('instanceid','abcdefghijkl');
+
 		$this->appManager = $this->container->get('OCP\App\IAppManager');
+
+		$this->container->get('OCP\IUserManager')->clearBackends();
 		$this->userBackend = new UserBackend($this->getLogStub()
 			, $this->getMockAppConfig()
 			, $this->getMockDb());
