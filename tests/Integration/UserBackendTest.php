@@ -44,7 +44,7 @@ class UserBackendTest extends TestCase {
 	/** @var \PDO */
 	private $dbHandle;
 
-	protected function setUp() {
+    protected function setUp(): void {
 		parent::setUp();
 
 		$app = new App(self::APP_ID);

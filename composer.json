@@ -14,14 +14,18 @@
     "issues": "https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues"
   },
   "autoload": {
-    "classmap": [
-      "tests/Dbs/",
-      "lib/"
-    ]
+    "psr-4": {
+      "OCA\\UserBackendSqlRaw\\" : "lib/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OCA\\UserBackendSqlRaw\\Tests\\" : "tests/"
+    }
   },
   "require": {},
   "require-dev": {
     "php": "^7.3",
-    "phpunit/phpunit": "^6"
+    "phpunit/phpunit": "^9"
   }
 }

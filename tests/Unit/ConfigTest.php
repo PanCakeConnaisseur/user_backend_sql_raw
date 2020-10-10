@@ -32,7 +32,7 @@ final class ConfigTest extends TestCase {
 	private $logStub;
 	private $nextcloudConfigStub;
 
-	protected function setUp() {
+	protected function setUp(): void {
 		parent::setUp();
 		$this->logStub = $this->createMock(LoggerInterface::class);
 		$this->nextcloudConfigStub = $this->createMock(IConfig::class);
