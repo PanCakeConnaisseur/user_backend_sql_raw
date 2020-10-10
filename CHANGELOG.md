@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * app now requires PHP >=7.3
+* internal migrations to current Nextcloud APIs
 
 ### Removed
 * support for Nextcloud < 20, due to migration to newer Nextcloud APIs. Older versions of the app will remain in the [Nextcloud app store](https://apps.nextcloud.com/apps/user_backend_sql_raw) and support older versions of Nextcloud. Alternatively you can find all versions in the [releases section](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases).
