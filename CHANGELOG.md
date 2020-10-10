@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-* app now requires PHP >=7.3
+* app now requires PHP >=7.2
 * internal migrations to current Nextcloud APIs
 
 ### Removed
