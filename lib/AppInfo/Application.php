@@ -27,39 +27,35 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use Psr\Container\ContainerInterface;
 
-class Application extends App implements IBootstrap
-{
-    public const APP_ID = 'user_backend_sql_raw';
+class Application extends App implements IBootstrap {
+	public const APP_ID = 'user_backend_sql_raw';
 
-    public function __construct(array $urlParams = array())
-    {
-        parent::__construct(Application::APP_ID, $urlParams);
-    }
+	public function __construct(array $urlParams = array()) {
+		parent::__construct(Application::APP_ID, $urlParams);
+	}
 
-    public function register(IRegistrationContext $context): void
-    {
-        /**
-         * "Service" in this context is simply a class that you want to be able to inject.
-         *
-         * We don't have to register all classes because they can be auto-wired, but OCA\UserBackendSqlRaw\Db is an
-         * abstract class and we need to manually define what Nextcloud will return when someone queries (requests an
-         * instance of) this class. We query Config first (this one was auto-wired) and use it's getDbType() method to
-         * instantiate the proper Db class by name.
-         *
-         * Nextcloud's dependency injection is partly explained in:
-         * https://docs.nextcloud.com/server/latest/developer_manual/basics/dependency_injection.html#how-to-deal-with-interface-and-primitive-type-parameters
-         */
-        $context->registerService('OCA\UserBackendSqlRaw\Db', function (ContainerInterface $container) {
-            /** @var \OCA\UserBackendSqlRaw\Config $config */
-            $config = $container->get('OCA\UserBackendSqlRaw\Config');
-            return $container->get('OCA\UserBackendSqlRaw\Dbs\\' . ucfirst($config->getDbType()));
-        });
-    }
+	public function register(IRegistrationContext $context): void {
+		/**
+		 * "Service" in this context is simply a class that you want to be able to inject.
+		 *
+		 * We don't have to register all classes because they can be auto-wired, but OCA\UserBackendSqlRaw\Db
+		 * is an abstract class and we need to manually define what Nextcloud will return when someone
+		 * queries (requests an instance of) this class. We query Config first (this one was auto-wired) and
+		 * use it's getDbType() method to instantiate the proper Db class by name.
+		 *
+		 * Nextcloud's dependency injection is partly explained in:
+		 * https://docs.nextcloud.com/server/latest/developer_manual/basics/dependency_injection.html#how-to-deal-with-interface-and-primitive-type-parameters
+		 */
+		$context->registerService('OCA\UserBackendSqlRaw\Db', function (ContainerInterface $container) {
+			/** @var \OCA\UserBackendSqlRaw\Config $config */
+			$config = $container->get('OCA\UserBackendSqlRaw\Config');
+			return $container->get('OCA\UserBackendSqlRaw\Dbs\\' . ucfirst($config->getDbType()));
+		});
+	}
 
-    public function boot(IBootContext $context): void
-    {
-        $userBackendSqlRaw = $context->getAppContainer()->get(\OCA\UserBackendSqlRaw\UserBackend::class);
-        $userManager = $context->getAppContainer()->get('OCP\IUserManager');
-        $userManager->registerBackend($userBackendSqlRaw);
-    }
+	public function boot(IBootContext $context): void {
+		$userBackendSqlRaw = $context->getAppContainer()->get(\OCA\UserBackendSqlRaw\UserBackend::class);
+		$userManager = $context->getAppContainer()->get('OCP\IUserManager');
+		$userManager->registerBackend($userBackendSqlRaw);
+	}
 }
