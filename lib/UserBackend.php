@@ -176,10 +176,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	public function setPassword($username, $newPassword) {
 		// prevent denial of service
 		if (strlen($newPassword) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
-			$this->logger->error('Setting a new password for \''
-				. $username . '\' was rejected because it is longer than '
-				. Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH . ' characters. This is '
-				. 'to prevent denial of service attacks against the server.');
+			$this->logPasswordLengthError($username);
 			return FALSE;
 		}
 
@@ -235,6 +232,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	public function createUser($providedUsername, $providedPassword) {
 		// prevent denial of service
 		if (strlen($providedPassword) > Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH) {
+			$this->logPasswordLengthError($providedUsername);
 			return FALSE;
 		}
 
@@ -363,4 +361,14 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
         }
         return $pdoStatement;
     }
+
+	/**
+	 * Because this error is logged in two places, the lengthy error message is unified here.
+	 * @param $username string username to mention in the error log
+	 */
+	private function logPasswordLengthError(string $username): void {
+		$this->logger->error('Setting a new password for user \'' . $username
+			. '\' was rejected because it is longer than ' . Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH
+			. ' characters. This is to prevent denial of service attacks against the server.');
+	}
 }
