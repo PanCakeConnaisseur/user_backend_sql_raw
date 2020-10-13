@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install system package dependencies
-        run: sudo apt-get install composer php-sqlite3
+        run: sudo apt-get update && sudo apt-get install composer php-sqlite3
 
       - name: Checkout latest Nextcloud
         uses: actions/checkout@v2
