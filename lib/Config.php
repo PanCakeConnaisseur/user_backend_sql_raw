@@ -21,7 +21,7 @@
 
 namespace OCA\UserBackendSqlRaw;
 
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 use \OCP\IConfig;
 
 class Config {
@@ -59,11 +59,11 @@ class Config {
 	const CONFIG_KEY_GET_EMAIL_ADDRESS = 'get_email_address';
 	const CONFIG_KEY_GET_GROUPS = 'get_groups';
 
+	/* @var LoggerInterface */
 	private $logger;
 	private $appConfiguration;
-	private $logContext = ['app' => 'user_backend_sql_raw'];
 
-	public function __construct(ILogger $logger, IConfig $nextCloudConfiguration) {
+	public function __construct(LoggerInterface $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
 
 		$this->appConfiguration = $nextCloudConfiguration->getSystemValue(self::CONFIG_KEY);
@@ -259,8 +259,7 @@ class Config {
 	private function getConfigValueOrDefaultValue($configKey, $defaultValue) {
 		if (empty($this->appConfiguration[$configKey])) {
 			$this->logger->debug('The config key ' . $configKey
-				. ' is not set, defaulting to ' . $defaultValue . '.'
-				, $this->logContext);
+				. ' is not set, defaulting to ' . $defaultValue . '.');
 			return $defaultValue;
 		} else {
 			return $this->appConfiguration[$configKey];

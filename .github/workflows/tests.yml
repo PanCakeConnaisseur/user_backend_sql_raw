@@ -1,0 +1,35 @@
+name: tests
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install system package dependencies
+        run: sudo apt-get update && sudo apt-get install composer php-sqlite3
+
+      - name: Checkout latest Nextcloud
+        uses: actions/checkout@v2
+        with:
+          repository: nextcloud/server
+          path: ./nextcloud
+
+      - name: Checkout 3rd party submodule for Nextcloud
+        working-directory: ./nextcloud
+        run: git submodule update --init
+
+      - name: Install Nextcloud with Sqlite database
+        working-directory: ./nextcloud
+        run: php occ maintenance:install --database "sqlite" --database-name "nextcloud"  --admin-user "admin" --admin-pass "adminpassword"
+
+      - name: Checkout user_backend_sql_raw (test subject)
+        uses: actions/checkout@v2
+        with:
+          path: ./nextcloud/apps/user_backend_sql_raw
+
+      - name: Install PHP dependencies with composer
+        working-directory: ./nextcloud/apps/user_backend_sql_raw
+        run: composer install
+
+      - name: Run all tests
+        working-directory: ./nextcloud/apps/user_backend_sql_raw
+        run: vendor/phpunit/phpunit/phpunit
