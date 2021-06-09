@@ -23,8 +23,9 @@ namespace OCA\UserBackendSqlRaw;
 
 use Psr\Log\LoggerInterface;
 use OC\User\Backend;
+use OCP\User\Backend\IGetRealUIDBackend;
 
-class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
+class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface, \OCP\User\Backend\IGetRealUIDBackend {
 
     /** @var LoggerInterface */
 	private $logger;
@@ -297,7 +298,7 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 
 	/**
 	 * Creates password with the modern password_hash() method. Supports Bcrypt, Argon2i
-     * and Argon2id
+	 * and Argon2id
 	 * @param $password string the password to hash
 	 * @param $algorithm int the algorithm to use for hashing the password
 	 * @return bool|string the hashed password or FALSE on failure
@@ -349,18 +350,17 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 	 *
 	 * @return bool|\PDOStatement
 	 */
-    private function executeOrCatchExceptionAndReturnFalse(\PDOStatement $pdoStatement, array $parameterSubstitutions)
-    {
-        try {
-            $pdoStatement->execute($parameterSubstitutions);
-        } catch (\PDOException $exception) {
-            $this->logger->error('A SQL error occurred during a user_backend_sql_raw operation. '
-                . 'See SQLSTATE exception above for details.'
-                , ['exception' => $exception]);
-            return FALSE;
-        }
-        return $pdoStatement;
-    }
+	private function executeOrCatchExceptionAndReturnFalse(\PDOStatement $pdoStatement, array $parameterSubstitutions) {
+		try {
+			$pdoStatement->execute($parameterSubstitutions);
+		} catch (\PDOException $exception) {
+			$this->logger->error('A SQL error occurred during a user_backend_sql_raw operation. '
+			. 'See SQLSTATE exception above for details.'
+			, ['exception' => $exception]);
+			return FALSE;
+		}
+		return $pdoStatement;
+	}
 
 	/**
 	 * Because this error is logged in two places, the lengthy error message is unified here.
@@ -370,5 +370,24 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface {
 		$this->logger->error('Setting a new password for user \'' . $username
 			. '\' was rejected because it is longer than ' . Config::MAXIMUM_ALLOWED_PASSWORD_LENGTH
 			. ' characters. This is to prevent denial of service attacks against the server.');
+	}
+
+        /**
+         * Some backends accept different UIDs than what is the internal UID to be used.
+         * For example the database backend accepts differnt cased UIDs in all the functions
+         * but the internal UID that is to be used should be correctly cased.
+         *
+         * This little function makes sure that the used UID will be correct when using the user object
+         *
+         * @param string $uid
+         * @return string
+         */
+	public function getRealUID(string $uid): string {
+		if (!$this->userExists($uid)) {
+			throw new \RuntimeException($uid . ' does not exist');
+		}
+
+		$realUID = $this->getUsers($uid, 1);
+		return array_pop($realUID);
 	}
 }
