@@ -28,6 +28,7 @@ class Config {
 
 	const DEFAULT_DB_TYPE = 'postgresql';
 	const DEFAULT_DB_HOST = 'localhost';
+	const DEFAULT_DB_SOCK = NULL;
 	const DEFAULT_POSTGRESQL_PORT = '5432';
 	const DEFAULT_MARIADB_PORT = '3306';
 	const DEFAULT_MARIADB_CHARSET ='utf8mb4';
@@ -38,6 +39,7 @@ class Config {
 	const CONFIG_KEY = 'user_backend_sql_raw';
 	const CONFIG_KEY_DB_TYPE = 'db_type';
 	const CONFIG_KEY_DB_HOST = 'db_host';
+	const CONFIG_KEY_DB_SOCK = 'db_sock';
 	const CONFIG_KEY_DB_PORT = 'db_port';
 	const CONFIG_KEY_DB_NAME = 'db_name';
 	const CONFIG_KEY_DB_USER = 'db_user';
@@ -89,6 +91,14 @@ class Config {
 		}
 
 		return $normalizedDbType;
+	}
+
+	/**
+	 * @return string db socket to connect to
+	 */
+	public function getDbSock() {
+		return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_SOCK
+			,self::DEFAULT_DB_SOCK);
 	}
 
 	/**
