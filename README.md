@@ -117,11 +117,10 @@ by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*. Log le
     * if not installed: `apt install jq`
     * watch logfile starting at the bottom:
         ```bash
-        jq -C . nextcloud.log  | less -R +G
+        jq -C 'select (.app=="user_backend_sql_raw")' /var/www/nextcloud/data/nextcloud.log  | less -R +G
         ```
-        
-        * `-C` enables colored output, later `-R` keeps it
+        * `-C` enables colored output, later for *less* `-R` keeps it
+        * the `select` defines a filter to only show entries where the key `app` is set to this app's name
         * `+G` jumps to end of file
-        * don't forget the single period `.` after `-C` it's not a typo and means "don't filter anything"
         * *less* does not auto-update, you need to quit using <kbd>q</kbd> and start again 
 - This app also logs non-SQL configuration errors, e.g. missing db name.
