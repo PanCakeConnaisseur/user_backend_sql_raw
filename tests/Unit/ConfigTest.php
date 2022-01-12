@@ -19,20 +19,22 @@
  *
  */
 
-namespace OCA\UserBackendSqlRaw\tests\Unit;
+namespace OCA\UserBackendSqlRaw\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use \OCA\UserBackendSqlRaw\Config;
+use OCA\UserBackendSqlRaw\Config;
 use OCP\IConfig;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+
 
 final class ConfigTest extends TestCase {
 
 	private $logStub;
 	private $nextcloudConfigStub;
 
-	protected function setUp() {
+	protected function setUp(): void {
 		parent::setUp();
-		$this->logStub = $this->createMock(\OC\Log::class);
+		$this->logStub = $this->createMock(LoggerInterface::class);
 		$this->nextcloudConfigStub = $this->createMock(IConfig::class);
 	}
 
@@ -295,7 +297,7 @@ final class ConfigTest extends TestCase {
 
 		$this->expectException(\UnexpectedValueException::class);
 		$config = new Config($this->logStub, $this->nextcloudConfigStub);
-		$config->getDbPassword();
+		$config->getDbType();
 	}
 
 	// Test that checks if multiple parameters are recognized simultaneously.

@@ -19,7 +19,7 @@
  *
  */
 
-namespace OCA\UserBackendSqlRaw\Tests\Integration\Dbs;
+namespace OCA\UserBackendSqlRaw\Tests\Dbs;
 
 use OCA\UserBackendSqlRaw\Db;
 use \PDO;

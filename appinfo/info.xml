@@ -14,22 +14,23 @@ In contrast to the app *SQL user backend*, you write the SQL queries yourself. Y
 The app uses prepared statements and is written to be secure by default to prevent SQL injections. It understands the most popular standards for password hash formats: MD5-CRYPT, SHA256-CRYPT, SHA512-CRYPT, BCrypt and the state-of-the-art Argon2i and Argon2id. Because the various formats are recognized on-the-fly your db can can have differing hash string formats at the same time, which eases migration to newer formats.
 
 This app supports PostgreSQL and MariaDB/MySQL.]]></description>
-    <version>1.0.10</version>
+    <version>1.1.1</version>
     <licence>agpl</licence>
     <author mail="dev@abelonline.de" >Alexey Abel</author>
+    <namespace>UserBackendSqlRaw</namespace>
+    <types>
+        <prelogin/>
+        <authentication/>
+    </types>
     <documentation>
         <admin>https://github.com/PanCakeConnaisseur/user_backend_sql_raw/blob/master/README.md</admin>
     </documentation>
-    <namespace>UserBackendSqlRaw</namespace>
     <category>security</category>
+	<discussion>https://help.nextcloud.com/c/apps/user-backend-sql-raw/138</discussion>
     <bugs>https://github.com/PanCakeConnaisseur/user_backend_sql_raw/issues</bugs>
-    <repository>https://github.com/PanCakeConnaisseur/user_backend_sql_raw</repository>
+    <repository type="git">https://github.com/PanCakeConnaisseur/user_backend_sql_raw</repository>
     <screenshot small-thumbnail="https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/2eb5221f0725a9ab09fde6384dea62463c7c52e5/screenshot-dark-small.jpg">https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/2eb5221f0725a9ab09fde6384dea62463c7c52e5/screenshot-dark-large.jpg</screenshot>
     <dependencies>
-        <nextcloud min-version="13" max-version="18"/>
+        <nextcloud min-version="20" max-version="22"/>
     </dependencies>
-    <types>
-        <authentication/>
-        <prelogin/>
-    </types>
 </info>
