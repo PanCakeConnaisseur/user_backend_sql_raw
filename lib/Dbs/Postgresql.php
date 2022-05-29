@@ -31,10 +31,17 @@ class Postgresql extends Db {
 	}
 
 	protected function assembleDsn() {
-		return 'pgsql:host=' . $this->config->getDbHost()
+		if ($this->config->getDbSock()) {
+			return 'pgsql:unix_socket=' . $this->config->getDbSock()
+			. ';dbname=' . $this->config->getDbName()
+			. ';user=' . $this->config->getDbUser()
+			. ';password=' . $this->config->getDbPassword();
+		} else {
+			return 'pgsql:host=' . $this->config->getDbHost()
 			. ';port=' . $this->config->getDbPort()
 			. ';dbname=' . $this->config->getDbName()
 			. ';user=' . $this->config->getDbUser()
 			. ';password=' . $this->config->getDbPassword();
+		}
 	}
 }
