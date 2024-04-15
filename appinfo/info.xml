@@ -31,6 +31,6 @@ This app supports PostgreSQL and MariaDB/MySQL.]]></description>
     <repository type="git">https://github.com/PanCakeConnaisseur/user_backend_sql_raw</repository>
     <screenshot small-thumbnail="https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/2eb5221f0725a9ab09fde6384dea62463c7c52e5/screenshot-dark-small.jpg">https://raw.githubusercontent.com/PanCakeConnaisseur/user_backend_sql_raw/2eb5221f0725a9ab09fde6384dea62463c7c52e5/screenshot-dark-large.jpg</screenshot>
     <dependencies>
-        <nextcloud min-version="20" max-version="24"/>
+        <nextcloud min-version="20" max-version="29"/>
     </dependencies>
 </info>
