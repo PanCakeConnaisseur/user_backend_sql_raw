@@ -8,7 +8,7 @@ jobs:
         run: sudo apt update && sudo apt install composer php-sqlite3
 
       - name: Checkout latest Nextcloud
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: nextcloud/server
           path: ./nextcloud
@@ -22,14 +22,20 @@ jobs:
         run: php occ maintenance:install --database "sqlite" --database-name "nextcloud"  --admin-user "admin" --admin-pass "adminpassword"
 
       - name: Checkout user_backend_sql_raw (test subject)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: ./nextcloud/apps/user_backend_sql_raw
 
       - name: Install PHP dependencies with composer
-        working-directory: ./nextcloud/apps/user_backend_sql_raw
-        run: php7.4 /usr/bin/composer install
+        uses: php-actions/composer@v6
+        with:
+          php_version: 8.3
+          working_dir: ./nextcloud/apps/user_backend_sql_raw
 
-      - name: Run all tests
+      # As of 2024-04-28 can't use php-actions/phpunit here, because it has no
+      # way to set the working path. Setting `configuration` or `testsuite` to
+      # the location of the phpunit.xml file makes it complain about composer.json
+      # not being there. Therefore, using "raw" phpunit call.
+      - name: Run all PHPUnit tests
         working-directory: ./nextcloud/apps/user_backend_sql_raw
-        run: php7.4 ./vendor/phpunit/phpunit/phpunit
+        run: php ./vendor/phpunit/phpunit/phpunit
