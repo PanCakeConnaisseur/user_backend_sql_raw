@@ -28,52 +28,52 @@ use \PDO;
  * creation.
  * @package OCA\UserBackendSqlRaw
  */
-abstract class Db {
+abstract class Db
+{
+    /** @var Config  */
+    protected $config;
 
-	/** @var Config  */
-	protected $config;
+    /** @var PDO */
+    private $dbHandle;
 
-	/** @var PDO */
-	private $dbHandle;
+    public function __construct(Config $config)
+    {
+        $this->config = $config;
+    }
 
-	public function __construct(Config $config) {
-		$this->config = $config;
-	}
+    /**
+     * Returns a db handle (PDO object).
+     * @return PDO a PDO object that is used for database access
+     */
+    public function getDbHandle()
+    {
+        if (is_null($this->dbHandle)) {
 
-	/**
-	 * Returns a db handle (PDO object).
-	 * @return PDO a PDO object that is used for database access
-	 */
-	public function getDbHandle() {
-		if (is_null($this->dbHandle)) {
+            $this->dbHandle = $this->createDbHandle();
+            // Some methods of the backend are called by Nextcloud in a way that
+            // suppresses exceptions, probably to avoid leaking passwords to log
+            // files. Therefore it is not necessary to change PDO::ATTR_ERRMODE for
+            // these manually. These methods are (as of Nextcloud 13.0.1):
+            // createUser(). But not setPassword(). Because checkPassword() only
+            // retrieves the hash it does not suffer from this problem at all.
+        }
+        // Some methods change the error mode, therefore it needs to be reset to
+        // the default value.
+        $this->dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $this->dbHandle;
+    }
 
-			$this->dbHandle = $this->createDbHandle();
-			// Some methods of the backend are called by Nextcloud in a way that
-			// suppresses exceptions, probably to avoid leaking passwords to log
-			// files. Therefore it is not necessary to change PDO::ATTR_ERRMODE for
-			// these manually. These methods are (as of Nextcloud 13.0.1):
-			// createUser(). But not setPassword(). Because checkPassword() only
-			// retrieves the hash it does not suffer from this problem at all.
-		}
-		// Some methods change the error mode, therefore it needs to be reset to
-		// the default value.
-		$this->dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		return $this->dbHandle;
-	}
+    /**
+     * Returns a new PDO db handle for the specific db type
+     * @return PDO a new PDO object
+     */
+    abstract protected function createDbHandle();
 
-
-	/**
-	 * Returns a new PDO db handle for the specific db type
-	 * @return PDO a new PDO object
-	 */
-	abstract protected function createDbHandle();
-
-
-	/**
-	 * Returns a Data Source Name (DSN) that is used by a PDO object for
-	 * creating the connection to a database. This is db specific.
-	 * @return string the DSN string
-	 */
-	abstract protected function assembleDsn();
+    /**
+     * Returns a Data Source Name (DSN) that is used by a PDO object for
+     * creating the connection to a database. This is db specific.
+     * @return string the DSN string
+     */
+    abstract protected function assembleDsn();
 
 }
