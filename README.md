@@ -2,7 +2,8 @@
 [![Latest Release by Semantic Version)](https://img.shields.io/github/v/release/PanCakeConnaisseur/user_backend_sql_raw?sort=semver)](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases)
 [![Total Downloads](https://img.shields.io/github/downloads/PanCakeConnaisseur/user_backend_sql_raw/total)](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases)
 [![License](https://img.shields.io/github/license/PanCakeConnaisseur/user_backend_sql_raw)](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/blob/master/LICENSE)
-[![Test Status](https://img.shields.io/github/workflow/status/PanCakeConnaisseur/user_backend_sql_raw/tests/master)](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/actions?query=workflow%3Atests)
+![Tests Status](https://img.shields.io/github/actions/workflow/status/PanCakeConnaisseur/user_backend_sql_raw/tests.yml?branch=master)
+
 
 This is an app for Nextcloud that offers user management and authentication with arbitrary SQL queries. 
 
