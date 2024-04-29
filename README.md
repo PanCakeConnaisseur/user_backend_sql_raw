@@ -49,16 +49,32 @@ This app has no user interface. All configuration is done via Nextcloud's system
 
 
 There are three types of configuration parameters:
+
 ### 1. Database
-that *User Backend SQL Raw* will connect to
-- *db_type* is optional and defaults to `postgresql`. The only other valid non-empty value is `mariadb`, which can be used for MySQL, too.
-- *db_host* is optional and defaults to `localhost`
-- *db_port* is optional and defaults to `5432`
-- *db_name*, *db_user* and *db_password* are mandatory
-- *mariadb_charset* sets the charset for mariadb connections, is optional and defaults to `utf8mb4`
+
+that *User Backend SQL Raw* will connect to.
+
+| key                | value                                   | default value |
+| ------------------ | --------------------------------------- | ------------- |
+| `db_type`          | `postgresql` or `mariadb`               | `postgresql`  |
+| `db_host`          | your db host                            | `localhost`   |
+| `db_port`          | your db port                            | `5432`        |
+| `db_name`          | your db name                            |               |
+| `db_user`          | your db user                            |               |
+| `db_password`      | your db password                        |               |
+| `db_password_file` | path to file containing the db password |               |
+| `mariadb_charset`  | the charset for mariadb connections     | `utf8mb4`     |
+
+* Values without a default value are mandatory, except that
+	* only one of `db_password` or `db_passowrd_file` must be set.
+* Only the first line of the file specified by `db_passowrd_file` is read.
+	* Not more than 100 characters of the first line are read.
+  * Whitespace-like characters are [stripped](https://www.php.net/manual/en/function.trim.php) from the beginning and end of the read password.
 
 ### 2. SQL Queries
-that will be used to read/write data
+
+that will be used to read/write data.
+
 - queries use named parameters. You have to use the exact names as shown in the examples. For
  example, to retrieve the hash for a user, the query named `get_password_hash_for_user` will be 
  used. Write your custom SQL query and simply put `:username` where you are referring to 
@@ -67,8 +83,7 @@ that will be used to read/write data
  leave the query `get_home` commented. This app will recognize 
  this and [communicate](https://docs.nextcloud.com/server/13/developer_manual/api/OCP/UserInterface.html#OCP\UserInterface::implementsActions) to Nextcloud that this feature is not available.
     - `user_exists` and `get_users` are required, the rest is optional.
-    -  For user authentication (i.e. login) you need at least `get_password_hash_for_user`, 
-	`user_exists` and `get_users`.
+    -  For user authentication (i.e. login) you need at least `get_password_hash_for_user`, `user_exists` and `get_users`.
     
  - For all queries that read data, only the first column is interpreted.
  - Two queries require a little bit of attention:
@@ -84,7 +99,9 @@ that will be used to read/write data
     [prepare()](http://php.net/manual/en/pdo.prepare.php) method of a PDO object.
 	
 ### 3. Hash Algorithm For New Passwords
-used for the creation of new passwords
+
+used for the creation of new passwords.
+
 - is optional and, if you leave it empty, defaults to `bcrypt` ($2y$).
 - Other supported hash algorithms are MD5-CRYPT, SHA-256-CRYPT, SHA-512-CRYPT, Argon2i and Argon2id. 
 The config values are `md5`, `sha256`, `sha512`, `argon2i`, `argon2id` respectively, e.g. 
@@ -100,6 +117,7 @@ The config values are `md5`, `sha256`, `sha512`, `argon2i`, `argon2id` respectiv
 
 
 ## Security
+
 - Password length is limited to 100 characters to prevent denial of service attacks against the 
 web server. Without a limit, malicious users could feed your Nextcloud instance with passwords that have a length of tens of thousands of characters, which could cause a very
  high load due to expensive password hashing operations.
@@ -107,6 +125,7 @@ web server. Without a limit, malicious users could feed your Nextcloud instance 
  not limited in length. You should limit this on the db layer.
  
 ## Troubleshooting
+
 - **TL;DR**: check the log file
 - This app has no UI, therefore all error output (exceptions and explicit logs) is written to [Nextcloud's log](https://docs.nextcloud.com/server/20/admin_manual/configuration_server/logging_configuration.html), 
 by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*. Log level 3 is sufficient for all non-debug output.
