@@ -247,10 +247,10 @@ final class ConfigTest extends TestCase
         self::assertEquals($expectedPort, $actualPort);
     }
 
-    public function testDBPasswordFromPasswordFileIsTrimmedAndReturned()
+    public function testDBPasswordFromPasswordFileIsReturned()
     {
 
-        $expectedPassword = 'very-secret 909!&äßZ';
+        $expectedPassword = 'v_erY-secr3ttt 909!&äßZ';
 
         $db_password_file = tempnam("/tmp", "user_backend_sql_raw-db_password_file");
         if ($db_password_file === false) {
@@ -262,8 +262,38 @@ final class ConfigTest extends TestCase
             self::fail("Temporary db password file could not be opened for writing.");
         }
 
-        // add whitespace at the end which will be trimmed
-        fwrite($file, "{$expectedPassword} ");
+        fwrite($file, $expectedPassword);
+        fclose($file);
+
+        $this->nextcloudConfigStub->method('getSystemValue')
+            ->willReturn(array(
+                'db_password_file' => $db_password_file,
+            ));
+
+        $config = new Config($this->logStub, $this->nextcloudConfigStub);
+
+        $actualPassword = $config->getDbPassword();
+        unlink($db_password_file);
+        self::assertEquals($expectedPassword, $actualPassword);
+    }
+
+	public function testDBPasswordFromPasswordFileIsTrimmed()
+    {
+
+        $expectedPassword = 'secret';
+
+        $db_password_file = tempnam("/tmp", "user_backend_sql_raw-db_password_file");
+        if ($db_password_file === false) {
+            self::fail("Temporary db password file could not be created.");
+        }
+
+        $file = fopen($db_password_file, "w");
+        if ($file === false) {
+            self::fail("Temporary db password file could not be opened for writing.");
+        }
+
+        // add tab in front and whitespace at the end which will be trimmed
+        fwrite($file, "\t{$expectedPassword} ");
         fclose($file);
 
         $this->nextcloudConfigStub->method('getSystemValue')
