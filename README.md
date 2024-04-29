@@ -71,16 +71,16 @@ There are three types of configuration parameters:
 
 that *User Backend SQL Raw* will connect to.
 
-| key                | value                                                                                                                  | default value |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `db_type`          | `postgresql` or `mariadb`                                                                                              | `postgresql`  |
-| `db_host`          | your db host, e.g. `localhost` or `db.example.com` or (only for PostgreSQL) path to socket, e.g. `/var/run/postgresql` | `localhost`   |
-| `db_port`          | your db port                                                                                                           | `5432`        |
-| `db_name`          | your db name                                                                                                           |               |
-| `db_user`          | your db user                                                                                                           |               |
-| `db_password`      | your db password                                                                                                       |               |
-| `db_password_file` | path to file containing the db password                                                                                |               |
-| `mariadb_charset`  | the charset for mariadb connections                                                                                    | `utf8mb4`     |
+| key                | value                                                                                                                    | default value |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| `db_type`          | `postgresql` or `mariadb`                                                                                                | `postgresql`  |
+| `db_host`          | your db host such as `localhost` or `db.example.com` or (only for PostgreSQL) path to socket, e.g. `/var/run/postgresql` | `localhost`   |
+| `db_port`          | your db port                                                                                                             | `5432`        |
+| `db_name`          | your db name                                                                                                             |               |
+| `db_user`          | your db user                                                                                                             |               |
+| `db_password`      | your db password                                                                                                         |               |
+| `db_password_file` | path to file containing the db password                                                                                  |               |
+| `mariadb_charset`  | the charset for mariadb connections                                                                                      | `utf8mb4`     |
 
 * Values without a default value are mandatory, except that
   * only one of `db_password` or `db_passowrd_file` must be set.
@@ -99,7 +99,7 @@ that will be used to read/write data.
  username (aka uid) of the user trying to login.
 * You don't need to supply all queries. For example, if you use the default user home simply leave
  the query `get_home` commented. This app will recognize this and
- [communicate](https://docs.nextcloud.com/server/13/developer_manual/api/OCP/UserInterface.html#OCP\UserInterface::implementsActions)
+ [communicate](https://github.com/nextcloud/server/blob/316acc3cc313f4333fe29d136f9124f163b40dec/lib/public/UserInterface.php#L47)
  to Nextcloud that this feature is not available.
   * `user_exists` and `get_users` are required, the rest is optional.
   * For user authentication (i.e. login) you need at least `get_password_hash_for_user`,
@@ -146,7 +146,7 @@ web server. Without a limit, malicious users could feed your Nextcloud instance 
 ## Troubleshooting
 
 * **TL;DR**: check the log file
-* This app has no UI, therefore all error output (exceptions and explicit logs) is written to [Nextcloud's log](https://docs.nextcloud.com/server/20/admin_manual/configuration_server/logging_configuration.html),
+* This app has no UI, therefore all error output (exceptions and explicit logs) is written to [Nextcloud's log](https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/logging_configuration.html),
 by default  */var/www/nextcloud/data/nextcloud.log* or */var/log/syslog*. Log level 3 is sufficient for all non-debug output.
 * There are no semantic checks for the SQL queries. As soon as a query string
   is not empty the app assumes that it is a query and executes it. It's likely that you will
