@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* Support reading passwords from a file specified in the `db_password_file` config key. This is
-useful for systems where configuration files might be(come) public or world readable and thus
-secrets must be kept separately in files. Examples are NixOS or Docker (secrets).
+* Support reading passwords from a file specified in the `db_password_file`
+config key. This is useful for systems where configuration files might be(come)
+public or world readable and thus secrets must be kept separately in files.
+Examples are NixOS or Docker (secrets).
 
 ## [1.4.0] - 2024-04-28
 
@@ -23,7 +24,8 @@ secrets must be kept separately in files. Examples are NixOS or Docker (secrets)
 
 ### Added
 
-* [check](https://github.com/nextcloud/server/issues/29914) and increase supported version to Nextcloud 24
+* [check](https://github.com/nextcloud/server/issues/29914) and increase
+  supported version to Nextcloud 24
 
 ## [1.2.0] - 2022-05-29
 
@@ -50,7 +52,12 @@ secrets must be kept separately in files. Examples are NixOS or Docker (secrets)
 
 ### Removed
 
-* support for Nextcloud < 20, due to migration to newer Nextcloud APIs. Older versions of the app will remain in the [Nextcloud app store](https://apps.nextcloud.com/apps/user_backend_sql_raw) and support older versions of Nextcloud. Alternatively you can find all versions in the [releases section](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases).
+* support for Nextcloud < 20, due to migration to newer Nextcloud APIs. Older
+  versions of the app will remain in the [Nextcloud app
+  store](https://apps.nextcloud.com/apps/user_backend_sql_raw) and support older
+  versions of Nextcloud. Alternatively you can find all versions in the
+  [releases
+  section](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases).
 
 ### Fixed
 
@@ -107,7 +114,8 @@ secrets must be kept separately in files. Examples are NixOS or Docker (secrets)
 
 ### Fixed
 
-* Fix an issue where the MariaDB/MySQL driver would not handle a LIMIT or OFFSET parameter properly.
+* Fix an issue where the MariaDB/MySQL driver would not handle a LIMIT or OFFSET
+  parameter properly.
 
 ## [1.0.4] - 2018-12-03
 
@@ -131,12 +139,12 @@ secrets must be kept separately in files. Examples are NixOS or Docker (secrets)
 
 ### Fixed
 
-* Fixed a bug where for some (non security related) operations, SQL errors would prevent Nextcloud
-from realizing that that operation failed.
+* Fixed a bug where for some (non security related) operations, SQL errors would
+prevent Nextcloud from realizing that that operation failed.
 
 ## [1.0.0] - 2018-04-29
 
 ### Changed
 
-* Named parameter in query `get_users` was `:username`, is now `:search` because you search for
-user names and display names.
+* Named parameter in query `get_users` was `:username`, is now `:search` because
+you search for user names and display names.
