@@ -24,356 +24,380 @@ namespace OCA\UserBackendSqlRaw;
 use Psr\Log\LoggerInterface;
 use \OCP\IConfig;
 
+class Config
+{
 
-class Config {
+    const DEFAULT_DB_TYPE = 'postgresql';
+    const DEFAULT_DB_HOST = 'localhost';
+    const DEFAULT_POSTGRESQL_PORT = '5432';
+    const DEFAULT_MARIADB_PORT = '3306';
+    const DEFAULT_MARIADB_CHARSET = 'utf8mb4';
+    const DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'bcrypt';
 
-	const DEFAULT_DB_TYPE = 'postgresql';
-	const DEFAULT_DB_HOST = 'localhost';
-	const DEFAULT_POSTGRESQL_PORT = '5432';
-	const DEFAULT_MARIADB_PORT = '3306';
-	const DEFAULT_MARIADB_CHARSET ='utf8mb4';
-	const DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'bcrypt';
+    const MAXIMUM_ALLOWED_PASSWORD_LENGTH = 100;
 
-	const MAXIMUM_ALLOWED_PASSWORD_LENGTH = 100;
+    const CONFIG_KEY = 'user_backend_sql_raw';
+    const CONFIG_KEY_DB_TYPE = 'db_type';
+    const CONFIG_KEY_DB_HOST = 'db_host';
+    const CONFIG_KEY_DB_PORT = 'db_port';
+    const CONFIG_KEY_DB_NAME = 'db_name';
+    const CONFIG_KEY_DB_USER = 'db_user';
+    const CONFIG_KEY_DB_PASSWORD = 'db_password';
+    const CONFIG_KEY_DB_PASSWORD_FILE = 'db_password_file';
+    const CONFIG_KEY_MARIADB_CHARSET = 'mariadb_charset';
+    const CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'hash_algorithm_for_new_passwords';
 
-	const CONFIG_KEY = 'user_backend_sql_raw';
-	const CONFIG_KEY_DB_TYPE = 'db_type';
-	const CONFIG_KEY_DB_HOST = 'db_host';
-	const CONFIG_KEY_DB_PORT = 'db_port';
-	const CONFIG_KEY_DB_NAME = 'db_name';
-	const CONFIG_KEY_DB_USER = 'db_user';
-	const CONFIG_KEY_DB_PASSWORD = 'db_password';
-	const CONFIG_KEY_DB_PASSWORD_FILE = 'db_password_file';
-	const CONFIG_KEY_MARIADB_CHARSET = 'mariadb_charset';
-	const CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'hash_algorithm_for_new_passwords';
+    const CONFIG_KEY_QUERIES = 'queries';
+    const CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER = 'get_password_hash_for_user';
+    const CONFIG_KEY_USER_EXISTS = 'user_exists';
+    const CONFIG_KEY_GET_USERS = 'get_users';
+    const CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER = 'set_password_hash_for_user';
+    const CONFIG_KEY_DELETE_USER = 'delete_user';
+    const CONFIG_KEY_GET_DISPLAY_NAME = 'get_display_name';
+    const CONFIG_KEY_SET_DISPLAY_NAME = 'set_display_name';
+    const CONFIG_KEY_COUNT_USERS = 'count_users';
+    const CONFIG_KEY_GET_HOME = 'get_home';
+    const CONFIG_KEY_CREATE_USER = 'create_user';
 
-	const CONFIG_KEY_QUERIES = 'queries';
-	const CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER = 'get_password_hash_for_user';
-	const CONFIG_KEY_USER_EXISTS = 'user_exists';
-	const CONFIG_KEY_GET_USERS = 'get_users';
-	const CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER = 'set_password_hash_for_user';
-	const CONFIG_KEY_DELETE_USER = 'delete_user';
-	const CONFIG_KEY_GET_DISPLAY_NAME = 'get_display_name';
-	const CONFIG_KEY_SET_DISPLAY_NAME = 'set_display_name';
-	const CONFIG_KEY_COUNT_USERS = 'count_users';
-	const CONFIG_KEY_GET_HOME = 'get_home';
-	const CONFIG_KEY_CREATE_USER = 'create_user';
+    /* @var LoggerInterface */
+    private $logger;
+    private $appConfiguration;
 
-	/* @var LoggerInterface */
-	private $logger;
-	private $appConfiguration;
+    /*
+     * Design decision: Judging from the Nextcloud debug logs the Config class is
+     * constructed at least as often as queries to the DB are made. Therefore,
+     * reading all config options once and then returning them from the runtime
+     * object would not yield any performance advantage. On the contrary, most
+     * options would be read but never used. So, lazy loading all options seems
+     * to be the better way.
+     */
+    public function __construct(LoggerInterface $logger, IConfig $nextCloudConfiguration)
+    {
+        $this->logger = $logger;
+        $this->appConfiguration = $nextCloudConfiguration->getSystemValue(self::CONFIG_KEY);
+        if (empty($this->appConfiguration)) {
+            throw new \UnexpectedValueException('The Nextcloud '
+                . 'configuration (config/config.php) does not contain the key '
+                . self::CONFIG_KEY . ' which should contain the configuration '
+                . 'for the app user_backend_sql_raw.');
+        }
+    }
 
-	/*
- 	* Design decision: Judging from the Nextcloud debug logs the Config class is
- 	* constructed at least as often as queries to the DB are made. Therefore,
- 	* reading all config options once and then returning them from the runtime
- 	* object would not yield any performance advantage. On the contrary, most
- 	* options would be read but never used. So, lazy loading all options seems
- 	* to be the better way.
-	*/
-	public function __construct(LoggerInterface $logger, IConfig $nextCloudConfiguration) {
-		$this->logger = $logger;
-		$this->appConfiguration = $nextCloudConfiguration->getSystemValue(self::CONFIG_KEY);
-		if (empty($this->appConfiguration)) {
-			throw new \UnexpectedValueException('The Nextcloud '
-				.'configuration (config/config.php) does not contain the key '
-				. self::CONFIG_KEY . ' which should contain the configuration '
-				.'for the app user_backend_sql_raw.');
-		}
-	}
+    /**
+     * @return string db type to connect to
+     */
+    public function getDbType()
+    {
+        $dbTypeFromConfig = $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_TYPE
+            , self::DEFAULT_DB_TYPE);
 
-	/**
-	 * @return string db type to connect to
-	 */
-	public function getDbType() {
-		$dbTypeFromConfig = $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_TYPE
-			,self::DEFAULT_DB_TYPE);
+        $normalizedDbType = $this->normalize($dbTypeFromConfig);
 
-		$normalizedDbType = $this->normalize($dbTypeFromConfig);
+        if (!$this->dbTypeIsSupported($normalizedDbType)) {
+            throw new \UnexpectedValueException('The config key '
+                . self::CONFIG_KEY_DB_TYPE . ' is set to ' . $dbTypeFromConfig . '. This '
+                . 'value is invalid. Only postgresql and mariadb are supported.');
+        }
 
-		if (!$this->dbTypeIsSupported($normalizedDbType)) {
-			throw new \UnexpectedValueException('The config key '
-				. self::CONFIG_KEY_DB_TYPE . ' is set to '.$dbTypeFromConfig.'. This '
-				.'value is invalid. Only postgresql and mariadb are supported.');
-		}
+        return $normalizedDbType;
+    }
 
-		return $normalizedDbType;
-	}
+    /**
+     * @return string db host to connect to
+     */
+    public function getDbHost()
+    {
+        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_HOST
+            , self::DEFAULT_DB_HOST);
+    }
 
-	/**
-	 * @return string db host to connect to
-	 */
-	public function getDbHost() {
-		return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_HOST
-			,self::DEFAULT_DB_HOST);
-	}
+    /**
+     * @return int db port to connect to
+     */
+    public function getDbPort()
+    {
 
-	/**
-	 * @return int db port to connect to
-	 */
-	public function getDbPort() {
+        $defaultPortForCurrentDb = ($this->getDbType() === 'mariadb')
+        ? self::DEFAULT_MARIADB_PORT
+        : self::DEFAULT_POSTGRESQL_PORT;
 
-		$defaultPortForCurrentDb = ($this->getDbType() === 'mariadb')
-			? self::DEFAULT_MARIADB_PORT
-			: self::DEFAULT_POSTGRESQL_PORT;
+        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_PORT
+            , $defaultPortForCurrentDb);
+    }
 
-		return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_PORT
-			, $defaultPortForCurrentDb);
-	}
+    /**
+     * @return string db name to connect to
+     */
+    public function getDbName()
+    {
+        return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_NAME);
+    }
 
-	/**
-	 * @return string db name to connect to
-	 */
-	public function getDbName() {
-		return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_NAME);
-	}
+    /**
+     * @return string db user to connect as
+     */
+    public function getDbUser()
+    {
+        return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_USER);
+    }
 
-	/**
-	 * @return string db user to connect as
-	 */
-	public function getDbUser() {
-		return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_USER);
-	}
+    /**
+     * @return string password of db user
+     * @throws \UnexpectedValueException
+     */
+    public function getDbPassword()
+    {
 
-	/**
-	 * @return string password of db user
-	 * @throws \UnexpectedValueException
-	 */
-	public function getDbPassword() {
+        $password = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD);
+        $passwordFilePath = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD_FILE);
 
-		$password = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD);
-		$passwordFilePath = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD_FILE);
+        $passwordIsSet = $password !== false;
+        $passwordFileIsSet = $passwordFilePath !== false;
 
-		$passwordIsSet = $password !== FALSE;
-		$passwordFileIsSet = $passwordFilePath !== FALSE;
+        if ($passwordIsSet === $passwordFileIsSet) { // expression is a "not XOR"
+            throw new \UnexpectedValueException('Exactly one of ' . self::CONFIG_KEY_DB_PASSWORD . ' or ' . self::CONFIG_KEY_DB_PASSWORD_FILE . ' must be set (not be empty) in the config.');
+        }
 
-		if ($passwordIsSet === $passwordFileIsSet) { // expression is a "not XOR"
-			throw new \UnexpectedValueException('Exactly one of ' . self::CONFIG_KEY_DB_PASSWORD . ' or ' . self::CONFIG_KEY_DB_PASSWORD_FILE . ' must be set (not be empty) in the config.');
-		}
+        if ($passwordIsSet) {
+            $this->logger->debug("Will use db password specified directly in config.php.");
+            return $password;
+        }
 
-		if ($passwordIsSet) {
-			$this->logger->debug("Will use db password specified directly in config.php.");
-			return $password;
-		}
+        if ($passwordFileIsSet) {
+            $this->logger->debug("Will use db password stored in file " . $passwordFilePath) . ".";
+            $error_message_prefix = "Specified db password file with path {$passwordFilePath}";
 
-		if ($passwordFileIsSet) {
-			$this->logger->debug("Will use db password stored in file " . $passwordFilePath). ".";
-			$error_message_prefix = "Specified db password file with path {$passwordFilePath}";
+            if (!file_exists($passwordFilePath)) {
+                throw new \UnexpectedValueException("{$error_message_prefix} does not exist or is not accessible.");
+            }
+            if (is_link($passwordFilePath)) {
+                throw new \UnexpectedValueException("{$error_message_prefix} is a symbolic link, which might be a security problem and is therefore not allowed.");
+            }
+            if (is_dir($passwordFilePath)) {
+                throw new \UnexpectedValueException("{$error_message_prefix} is a directory but I need a file to read the password.");
+            }
+            $file = fopen($passwordFilePath, "r");
+            if ($file === false) {
+                throw new \UnexpectedValueException("{$error_message_prefix} can not be opened. Maybe insufficient permissions?");
+            }
+            // + 1 because fgets() reads one less byte than specified and we want to keep the promise of reading 100 bytes
+            $first_line = fgets($file, self::MAXIMUM_ALLOWED_PASSWORD_LENGTH + 1);
+            if ($first_line === false) {
+                fclose($file);
+                throw new \UnexpectedValueException("{$error_message_prefix} was opened but the first line could not be read.");
+            }
+            fclose($file);
+            $this->logger->debug("Successfully read db password from file " . $passwordFilePath) . ".";
+            return trim($first_line);
+        }
 
-			if (!file_exists($passwordFilePath)) {
-				throw new \UnexpectedValueException("{$error_message_prefix} does not exist or is not accessible.");
-			}
-			if (is_link($passwordFilePath)) {
-				throw new \UnexpectedValueException("{$error_message_prefix} is a symbolic link, which might be a security problem and is therefore not allowed.");
-			}
-			if (is_dir($passwordFilePath)) {
-				throw new \UnexpectedValueException("{$error_message_prefix} is a directory but I need a file to read the password.");
-			}
-			$file = fopen($passwordFilePath, "r");
-			if ($file === FALSE) {
-				throw new \UnexpectedValueException("{$error_message_prefix} can not be opened. Maybe insufficient permissions?");
-			}
-			// + 1 because fgets() reads one less byte than specified and we want to keep the promise of reading 100 bytes
-			$first_line = fgets($file, self::MAXIMUM_ALLOWED_PASSWORD_LENGTH + 1);
-			if ($first_line === FALSE) {
-				fclose($file);
-				throw new \UnexpectedValueException("{$error_message_prefix} was opened but the first line could not be read.");
-			}
-			fclose($file);
-			$this->logger->debug("Successfully read db password from file " . $passwordFilePath). ".";
-			return trim($first_line);
-		}
+    }
 
-	}
+    /**
+     * @return string charset for mariadb connection
+     */
+    public function getMariadbCharset()
+    {
+        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_MARIADB_CHARSET
+            , self::DEFAULT_MARIADB_CHARSET);
+    }
 
-	/**
-	 * @return string charset for mariadb connection
-	 */
-	public function getMariadbCharset() {
-		return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_MARIADB_CHARSET
-			, self::DEFAULT_MARIADB_CHARSET);
-	}
+    /**
+     * @return string hash algorithm to be used for password generation
+     */
+    public function getHashAlgorithmForNewPasswords()
+    {
+        $hashAlgorithmFromConfig = $this->getConfigValueOrDefaultValue
+            (self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
+            , self::DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS);
 
-	/**
-	 * @return string hash algorithm to be used for password generation
-	 */
-	public function getHashAlgorithmForNewPasswords() {
-		$hashAlgorithmFromConfig = $this->getConfigValueOrDefaultValue
-		(self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
-			, self::DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS);
+        $normalizedHashAlgorithm = $this->normalize($hashAlgorithmFromConfig);
 
-		$normalizedHashAlgorithm = $this->normalize($hashAlgorithmFromConfig);
+        if (!$this->hashAlgorithmIsSupported($normalizedHashAlgorithm)) {
+            throw new \UnexpectedValueException('The config key '
+                . self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS . ' is set '
+                . 'to ' . $hashAlgorithmFromConfig . '. This value is invalid. Only '
+                . 'md5, sha256, sha512, bcrypt, argon2i and argon2id are supported.');
+        }
 
-		if (!$this->hashAlgorithmIsSupported($normalizedHashAlgorithm)) {
-			throw new \UnexpectedValueException('The config key '
-				. self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS. ' is set '
-				.'to '.$hashAlgorithmFromConfig.'. This value is invalid. Only '
-				.'md5, sha256, sha512, bcrypt, argon2i and argon2id are supported.');
-		}
-
-		if ($normalizedHashAlgorithm === 'argon2i'
-			&& version_compare(PHP_VERSION, '7.2.0', '<')) {
-			throw new \UnexpectedValueException(
-				'You specified Argon2i as the hash algorithm for new '
-				.'passwords. Argon2i is only available in PHP version 7.2.0 and'
-				.' higher, but your PHP version is '.PHP_VERSION.'.');
-		}
+        if ($normalizedHashAlgorithm === 'argon2i'
+            && version_compare(PHP_VERSION, '7.2.0', '<')) {
+            throw new \UnexpectedValueException(
+                'You specified Argon2i as the hash algorithm for new '
+                . 'passwords. Argon2i is only available in PHP version 7.2.0 and'
+                . ' higher, but your PHP version is ' . PHP_VERSION . '.');
+        }
 
         if ($normalizedHashAlgorithm === 'argon2id'
             && version_compare(PHP_VERSION, '7.3.0', '<')) {
             throw new \UnexpectedValueException(
                 'You specified Argon2id as the hash algorithm for new '
-                .'passwords. Argon2id is only available in PHP version 7.3.0 and'
-                .' higher, but your PHP version is '.PHP_VERSION.'.');
+                . 'passwords. Argon2id is only available in PHP version 7.3.0 and'
+                . ' higher, but your PHP version is ' . PHP_VERSION . '.');
         }
 
-		return $normalizedHashAlgorithm;
-	}
+        return $normalizedHashAlgorithm;
+    }
 
+    public function getQueryGetPasswordHashForUser()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER);
+    }
 
-	public function getQueryGetPasswordHashForUser() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_PASSWORD_HASH_FOR_USER);
-	}
+    public function getQueryUserExists()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_USER_EXISTS);
+    }
 
-	public function getQueryUserExists() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_USER_EXISTS);
-	}
+    public function getQueryGetUsers()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_USERS);
+    }
 
-	public function getQueryGetUsers() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_USERS);
-	}
+    public function getQuerySetPasswordForUser()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER);
+    }
 
-	public function getQuerySetPasswordForUser() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_SET_PASSWORD_HASH_FOR_USER);
-	}
+    public function getQueryDeleteUser()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_DELETE_USER);
+    }
 
-	public function getQueryDeleteUser() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_DELETE_USER);
-	}
+    public function getQueryGetDisplayName()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_DISPLAY_NAME);
+    }
 
-	public function getQueryGetDisplayName() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_DISPLAY_NAME);
-	}
+    public function getQuerySetDisplayName()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_SET_DISPLAY_NAME);
+    }
 
-	public function getQuerySetDisplayName() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_SET_DISPLAY_NAME);
-	}
+    public function getQueryCountUsers()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_COUNT_USERS);
+    }
 
-	public function getQueryCountUsers() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_COUNT_USERS);
-	}
+    public function getQueryGetHome()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_HOME);
+    }
 
-	public function getQueryGetHome() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_GET_HOME);
-	}
+    public function getQueryCreateUser()
+    {
+        return $this->getQueryStringOrFalse(self::CONFIG_KEY_CREATE_USER);
+    }
 
-	public function getQueryCreateUser() {
-		return $this->getQueryStringOrFalse(self::CONFIG_KEY_CREATE_USER);
-	}
+    /**
+     * Tries to read a config value and throws an exception if it is not set.
+     * This is used for config keys that are mandatory.
+     * @param $configKey string key name of configuration parameter
+     * @return string|array the value of the configuration parameter, which also
+     * can be an array (for queries).
+     * @throws \UnexpectedValueException
+     */
+    private function getConfigValueOrThrowException($configKey)
+    {
+        if (empty($this->appConfiguration[$configKey])) {
+            $errorMessage = 'The config key ' . $configKey . ' is not set. Add it'
+            . ' to config/config.php as a subkey of ' . self::CONFIG_KEY . '.';
+            throw new \UnexpectedValueException($errorMessage);
+        } else {
+            return $this->appConfiguration[$configKey];
+        }
+    }
 
-	/**
-	 * Tries to read a config value and throws an exception if it is not set.
-	 * This is used for config keys that are mandatory.
-	 * @param $configKey string key name of configuration parameter
-	 * @return string|array the value of the configuration parameter, which also
-	 * can be an array (for queries).
-	 * @throws \UnexpectedValueException
-	 */
-	private function getConfigValueOrThrowException($configKey) {
-		if (empty($this->appConfiguration[$configKey])) {
-			$errorMessage = 'The config key ' . $configKey . ' is not set. Add it'
-				. ' to config/config.php as a subkey of ' . self::CONFIG_KEY . '.';
-			throw new \UnexpectedValueException($errorMessage);
-		} else {
-			return $this->appConfiguration[$configKey];
-		}
-	}
+    /**
+     * Tries to read a config value and if it is set returns its value,
+     * otherwise returns provided value. Also logs a debug message that default
+     * value was used. This is used for config keys that are optional and where
+     * sensible default values are known.
+     * @param $configKey string key name of configuration parameter
+     * @param $defaultValue string default parameter that will be returned if
+     * config key is not set
+     * @return string value of config key or provided default value
+     */
+    private function getConfigValueOrDefaultValue($configKey, $defaultValue)
+    {
+        if (empty($this->appConfiguration[$configKey])) {
+            $this->logger->debug('The config key ' . $configKey
+                . ' is not set, defaulting to ' . $defaultValue . '.');
+            return $defaultValue;
+        } else {
+            return $this->appConfiguration[$configKey];
+        }
+    }
 
-	/**
-	 * Tries to read a config value and if it is set returns its value,
-	 * otherwise returns provided value. Also logs a debug message that default
-	 * value was used. This is used for config keys that are optional and where
-	 * sensible default values are known.
-	 * @param $configKey string key name of configuration parameter
-	 * @param $defaultValue string default parameter that will be returned if
-	 * config key is not set
-	 * @return string value of config key or provided default value
-	 */
-	private function getConfigValueOrDefaultValue($configKey, $defaultValue) {
-		if (empty($this->appConfiguration[$configKey])) {
-			$this->logger->debug('The config key ' . $configKey
-				. ' is not set, defaulting to ' . $defaultValue . '.');
-			return $defaultValue;
-		} else {
-			return $this->appConfiguration[$configKey];
-		}
-	}
+    /**
+     * Tries to read a config value and if it is set returns its value,
+     * otherwise returns FALSE. This is used for optional configuration keys
+     * where default values are not known, i.e. SQL queries.
+     * @param $configKey string key name of configuration parameter
+     * @return string|bool value of configuration parameter or false if it is
+     * not set
+     */
+    private function getConfigValueOrFalse($configKey)
+    {
+        if (empty($this->appConfiguration[$configKey])) {
+            return false;
+        } else {
+            return $this->appConfiguration[$configKey];
+        }
+    }
 
-	/**
-	 * Tries to read a config value and if it is set returns its value,
-	 * otherwise returns FALSE. This is used for optional configuration keys
-	 * where default values are not known, i.e. SQL queries.
-	 * @param $configKey string key name of configuration parameter
-	 * @return string|bool value of configuration parameter or false if it is
-	 * not set
-	 */
-	private function getConfigValueOrFalse ($configKey) {
-		if (empty($this->appConfiguration[$configKey])) {
-			return FALSE;
-		}
-		else {
-			return $this->appConfiguration[$configKey];
-		}
-	}
+    private function getValueOrFalse($value)
+    {
+        return empty($value) ? false : $value;
+    }
 
-	private function getValueOrFalse ($value) {
-		return empty($value) ? FALSE : $value;
-	}
+    /**
+     * Tries to read a query value and if it is set returns its value,
+     * otherwise returns FALSE.
+     * @param $configKey string key name of configuration parameter
+     * @return string|bool value of configuration parameter or false if it is
+     * not set
+     */
+    private function getQueryStringOrFalse($configKey)
+    {
+        $queryArray = $this->getConfigValueOrThrowException(self::CONFIG_KEY_QUERIES);
+        return $this->getValueOrFalse($queryArray[$configKey] ?? false);
+    }
 
+    /**
+     * @param $dbType string db descriptor to check
+     * @return bool whether the db is supported
+     */
+    private function dbTypeIsSupported($dbType)
+    {
+        return $dbType === 'postgresql'
+            || $dbType === 'mariadb';
+    }
 
-	/**
-	 * Tries to read a query value and if it is set returns its value,
-	 * otherwise returns FALSE.
-	 * @param $configKey string key name of configuration parameter
-	 * @return string|bool value of configuration parameter or false if it is
-	 * not set
-	 */
-	private function getQueryStringOrFalse ($configKey) {
-		$queryArray = $this->getConfigValueOrThrowException(self::CONFIG_KEY_QUERIES);
-		return $this->getValueOrFalse($queryArray[$configKey] ?? FALSE);
-	}
+    /**
+     * Checks whether hash algorithm is supported for writing.
+     * @param $hashAlgorithm string hash algorithm descriptor to check
+     * @return bool whether hash algorithm is supported
+     */
+    private function hashAlgorithmIsSupported($hashAlgorithm)
+    {
+        return $hashAlgorithm === 'md5'
+            || $hashAlgorithm === 'sha256'
+            || $hashAlgorithm === 'sha512'
+            || $hashAlgorithm === 'bcrypt'
+            || $hashAlgorithm === 'argon2i'
+            || $hashAlgorithm === 'argon2id';
+    }
 
-	/**
-	 * @param $dbType string db descriptor to check
-	 * @return bool whether the db is supported
-	 */
-	private function dbTypeIsSupported($dbType) {
-		return $dbType === 'postgresql'
-			|| $dbType === 'mariadb';
-	}
-
-	/**
-	 * Checks whether hash algorithm is supported for writing.
-	 * @param $hashAlgorithm string hash algorithm descriptor to check
-	 * @return bool whether hash algorithm is supported
-	 */
-	private function hashAlgorithmIsSupported($hashAlgorithm) {
-		return $hashAlgorithm === 'md5'
-			|| $hashAlgorithm === 'sha256'
-			|| $hashAlgorithm === 'sha512'
-			|| $hashAlgorithm === 'bcrypt'
-			|| $hashAlgorithm === 'argon2i'
-			|| $hashAlgorithm === 'argon2id';
-	}
-
-	/**
-	 * Removes hyphens and underscores from input and makes it lowercase.
-	 * Used for hash algorithms, in case a user enters 'sha-512' or
-	 * 'PostgreSQL'.
-	 * @param $string string string to normalize
-	 * @return string lowercase input with hyphens and underscores removed
-	 */
-	private function normalize($string) {
-		return strtolower(preg_replace("/[-_]/", "", $string));
-	}
+    /**
+     * Removes hyphens and underscores from input and makes it lowercase.
+     * Used for hash algorithms, in case a user enters 'sha-512' or
+     * 'PostgreSQL'.
+     * @param $string string string to normalize
+     * @return string lowercase input with hyphens and underscores removed
+     */
+    private function normalize($string)
+    {
+        return strtolower(preg_replace("/[-_]/", "", $string));
+    }
 }

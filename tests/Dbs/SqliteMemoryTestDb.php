@@ -24,13 +24,15 @@ namespace OCA\UserBackendSqlRaw\Tests\Dbs;
 use OCA\UserBackendSqlRaw\Db;
 use \PDO;
 
-class SqliteMemoryTestDb extends Db {
+class SqliteMemoryTestDb extends Db
+{
+    protected function createDbHandle()
+    {
+        return new PDO($this->assembleDsn());
+    }
 
-	protected function createDbHandle() {
-		return new PDO($this->assembleDsn());
-	}
-
-	protected function assembleDsn() {
-		return 'sqlite::memory:';
-	}
+    protected function assembleDsn()
+    {
+        return 'sqlite::memory:';
+    }
 }
