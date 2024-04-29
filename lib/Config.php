@@ -24,6 +24,7 @@ namespace OCA\UserBackendSqlRaw;
 use Psr\Log\LoggerInterface;
 use \OCP\IConfig;
 
+
 class Config {
 
 	const DEFAULT_DB_TYPE = 'postgresql';
@@ -42,6 +43,7 @@ class Config {
 	const CONFIG_KEY_DB_NAME = 'db_name';
 	const CONFIG_KEY_DB_USER = 'db_user';
 	const CONFIG_KEY_DB_PASSWORD = 'db_password';
+	const CONFIG_KEY_DB_PASSWORD_FILE = 'db_password_file';
 	const CONFIG_KEY_MARIADB_CHARSET = 'mariadb_charset';
 	const CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'hash_algorithm_for_new_passwords';
 
@@ -61,9 +63,16 @@ class Config {
 	private $logger;
 	private $appConfiguration;
 
+	/*
+ 	* Design decision: Judging from the Nextcloud debug logs the Config class is
+ 	* constructed at least as often as queries to the DB are made. Therefore,
+ 	* reading all config options once and then returning them from the runtime
+ 	* object would not yield any performance advantage. On the contrary, most
+ 	* options would be read but never used. So, lazy loading all options seems
+ 	* to be the better way.
+	*/
 	public function __construct(LoggerInterface $logger, IConfig $nextCloudConfiguration) {
 		$this->logger = $logger;
-
 		$this->appConfiguration = $nextCloudConfiguration->getSystemValue(self::CONFIG_KEY);
 		if (empty($this->appConfiguration)) {
 			throw new \UnexpectedValueException('The Nextcloud '
@@ -128,9 +137,53 @@ class Config {
 
 	/**
 	 * @return string password of db user
+	 * @throws \UnexpectedValueException
 	 */
 	public function getDbPassword() {
-		return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_PASSWORD);
+
+		$password = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD);
+		$passwordFilePath = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD_FILE);
+
+		$passwordIsSet = $password !== FALSE;
+		$passwordFileIsSet = $passwordFilePath !== FALSE;
+
+		if ($passwordIsSet === $passwordFileIsSet) { // expression is a "not XOR"
+			throw new \UnexpectedValueException('Exactly one of ' . self::CONFIG_KEY_DB_PASSWORD . ' or ' . self::CONFIG_KEY_DB_PASSWORD_FILE . ' must be set (not be empty) in the config.');
+		}
+
+		if ($passwordIsSet) {
+			$this->logger->debug("Will use db password specified directly in config.php.");
+			return $password;
+		}
+
+		if ($passwordFileIsSet) {
+			$this->logger->debug("Will use db password stored in file " . $passwordFilePath). ".";
+			$error_message_prefix = "Specified db password file with path {$passwordFilePath}";
+
+			if (!file_exists($passwordFilePath)) {
+				throw new \UnexpectedValueException("{$error_message_prefix} does not exist or is not accessible.");
+			}
+			if (is_link($passwordFilePath)) {
+				throw new \UnexpectedValueException("{$error_message_prefix} is a symbolic link, which might be a security problem and is therefore not allowed.");
+			}
+			if (is_dir($passwordFilePath)) {
+				throw new \UnexpectedValueException("{$error_message_prefix} is a directory but I need a file to read the password.");
+			}
+			$file = fopen($passwordFilePath, "r");
+			if ($file === FALSE) {
+				throw new \UnexpectedValueException("{$error_message_prefix} can not be opened. Maybe insufficient permissions?");
+			}
+			// + 1 because fgets() reads one less byte than specified and we want to keep the promise of reading 100 bytes
+			$first_line = fgets($file, self::MAXIMUM_ALLOWED_PASSWORD_LENGTH + 1);
+			if ($first_line === FALSE) {
+				fclose($file);
+				throw new \UnexpectedValueException("{$error_message_prefix} was opened but the first line could not be read.");
+			}
+			fclose($file);
+			$this->logger->debug("Successfully read db password from file " . $passwordFilePath). ".";
+			return trim($first_line);
+		}
+
 	}
 
 	/**
@@ -257,22 +310,37 @@ class Config {
 	}
 
 	/**
-	 * Tries to read a config value (query) and if it is set returns its value,
+	 * Tries to read a config value and if it is set returns its value,
 	 * otherwise returns FALSE. This is used for optional configuration keys
 	 * where default values are not known, i.e. SQL queries.
 	 * @param $configKey string key name of configuration parameter
 	 * @return string|bool value of configuration parameter or false if it is
 	 * not set
 	 */
-	private function getQueryStringOrFalse ($configKey) {
-		$queryArray = $this->getConfigValueOrThrowException(self::CONFIG_KEY_QUERIES);
-
-		if (empty($queryArray[$configKey])) {
+	private function getConfigValueOrFalse ($configKey) {
+		if (empty($this->appConfiguration[$configKey])) {
 			return FALSE;
 		}
 		else {
-			return $queryArray[$configKey];
+			return $this->appConfiguration[$configKey];
 		}
+	}
+
+	private function getValueOrFalse ($value) {
+		return empty($value) ? FALSE : $value;
+	}
+
+
+	/**
+	 * Tries to read a query value and if it is set returns its value,
+	 * otherwise returns FALSE.
+	 * @param $configKey string key name of configuration parameter
+	 * @return string|bool value of configuration parameter or false if it is
+	 * not set
+	 */
+	private function getQueryStringOrFalse ($configKey) {
+		$queryArray = $this->getConfigValueOrThrowException(self::CONFIG_KEY_QUERIES);
+		return $this->getValueOrFalse($queryArray[$configKey] ?? FALSE);
 	}
 
 	/**

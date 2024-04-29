@@ -72,6 +72,21 @@ final class ConfigTest extends TestCase {
 		$config->getDbName();
 	}
 
+	public function testThrowsExceptionIfDbPasswordAndDbPasswordFileAreBothSet() {
+		$this->nextcloudConfigStub->method('getSystemValue')
+			->willReturn(array(
+				'db_password' => 'such_secret',
+				// Specify a file that is always there, so that test does not fail due to missing db password file.
+				'db_password_file' => '/dev/zero'
+			));
+
+		$this->expectException(\UnexpectedValueException::class);
+		$config = new Config($this->logStub, $this->nextcloudConfigStub);
+		$config->getDbPassword();
+	}
+
+
+
 	// Tests that check if default values are uses correctly
 
 	public function testDefaultDbTypeIsUsedWhenThatParameterIsNotSet() {
@@ -162,7 +177,7 @@ final class ConfigTest extends TestCase {
 
 		$config = new Config($this->logStub, $this->nextcloudConfigStub);
 
-		$actualReturnValue = $config->getQueryUserExists();
+		$actualReturnValue = $config->getQueryGetUsers();
 		self::assertSame(FALSE, $actualReturnValue);
 	}
 
@@ -218,6 +233,36 @@ final class ConfigTest extends TestCase {
 		$expectedPort = '54321';
 		$actualPort = $config->getDbPort();
 		self::assertEquals($expectedPort, $actualPort);
+	}
+
+	public function testDBPasswordFromPasswordFileIsTrimmedAndReturned() {
+
+		$expectedPassword = 'very-secret 909!&äßZ';
+
+		$db_password_file = tempnam("/tmp", "user_backend_sql_raw-db_password_file");
+		if($db_password_file === FALSE) {
+			self::fail("Temporary db password file could not be created.");
+		}
+
+		$file = fopen($db_password_file, "w");
+		if($file === FALSE) {
+		self::fail("Temporary db password file could not be opened for writing.");
+		}
+
+		// add whitespace at the end which will be trimmed
+		fwrite($file, "{$expectedPassword} ");
+		fclose($file);
+
+		$this->nextcloudConfigStub->method('getSystemValue')
+			->willReturn(array(
+				'db_password_file' => $db_password_file
+			));
+
+		$config = new Config($this->logStub, $this->nextcloudConfigStub);
+
+		$actualPassword = $config->getDbPassword();
+		unlink($db_password_file);
+		self::assertEquals($expectedPassword, $actualPassword);
 	}
 
 	public function testMariaDbCharsetIsReturnedWhenThisParameterIsSet() {
