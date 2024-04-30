@@ -219,7 +219,8 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface
 
         $parameterSubstitutions = [
             ':username' => $username,
-            ':new_password_hash' => $this->hashPassword($newPassword)];
+            ':new_password_hash' => $newPasswordHash,
+        ];
 
         $dbUpdateWasSuccessful =
         $this->executeOrCatchExceptionAndReturnFalse($statement, $parameterSubstitutions);
