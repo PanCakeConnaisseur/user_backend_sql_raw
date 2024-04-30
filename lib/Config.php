@@ -32,6 +32,7 @@ class Config
     const DEFAULT_POSTGRESQL_PORT = '5432';
     const DEFAULT_MARIADB_PORT = '3306';
     const DEFAULT_MARIADB_CHARSET = 'utf8mb4';
+    const DEFAULT_VALIDATION_PASSWORD_CLASS = '';
     const DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'bcrypt';
 
     const MAXIMUM_ALLOWED_PASSWORD_LENGTH = 100;
@@ -45,6 +46,7 @@ class Config
     const CONFIG_KEY_DB_PASSWORD = 'db_password';
     const CONFIG_KEY_DB_PASSWORD_FILE = 'db_password_file';
     const CONFIG_KEY_MARIADB_CHARSET = 'mariadb_charset';
+    const CONFIG_KEY_VALIDATION_PASSWORD_CLASS = 'validation_password_class';
     const CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'hash_algorithm_for_new_passwords';
 
     const CONFIG_KEY_QUERIES = 'queries';
@@ -202,6 +204,12 @@ class Config
             , self::DEFAULT_MARIADB_CHARSET);
     }
 
+    public function getValidationPasswordClass(): string
+    {
+        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_VALIDATION_PASSWORD_CLASS
+            , self::DEFAULT_VALIDATION_PASSWORD_CLASS);
+    }
+
     /**
      * @return string hash algorithm to be used for password generation
      */
@@ -211,6 +219,9 @@ class Config
             (self::CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS
             , self::DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS);
 
+        if (class_exists($hashAlgorithmFromConfig)) {
+            return $hashAlgorithmFromConfig;
+        }
         $normalizedHashAlgorithm = $this->normalize($hashAlgorithmFromConfig);
 
         if (!$this->hashAlgorithmIsSupported($normalizedHashAlgorithm)) {

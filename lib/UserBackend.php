@@ -86,11 +86,15 @@ class UserBackend implements \OCP\IUserBackend, \OCP\UserInterface
             return false;
         }
 
-        if (password_verify($providedPassword, $retrievedPasswordHash)) {
+        if ($validationClassName = $this->config->getValidationPasswordClass()) {
+            $validationClass = new $validationClassName();
+            if ($validationClass->validate($providedPassword, $retrievedPasswordHash)) {
+                return $providedUsername;
+            }
+        } elseif (password_verify($providedPassword, $retrievedPasswordHash)) {
             return $providedUsername;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public function deleteUser($providedUsername)
