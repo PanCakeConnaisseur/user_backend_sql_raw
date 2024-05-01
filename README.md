@@ -47,7 +47,8 @@ This app has no user interface. All configuration is done via Nextcloud's system
    //'db_port' => '5432',
    'db_name' => 'theNameOfYourUserDatabase',
    'db_user' => 'yourDatabaseUser',
-   'db_password' => 'thePasswordforTheDatabaseUser',
+   'db_password' => 'thePasswordForTheDatabaseUser',
+   //'db_password_file' => '/var/secrets/fileContainingThePasswordForTheDatabaseUser',
    //'mariadb_charset' => 'utf8mb4',
    'queries' => array(
    'get_password_hash_for_user' => 'SELECT password_hash FROM users_fqda WHERE fqda = :username',
@@ -88,6 +89,9 @@ that *User Backend SQL Raw* will connect to.
   * Not more than 100 characters of the first line are read.
   * Whitespace-like characters are [stripped](https://www.php.net/manual/en/function.trim.php) from
     the beginning and end of the read password.
+* If you specify a socket as `db_host` (only for PostgreSQL), you need to put
+  dummy values for the mandatory values, although they are not required for the
+  socket connection. This will be fixed in a future release.
 
 ### 2. SQL Queries
 
