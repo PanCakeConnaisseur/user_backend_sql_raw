@@ -22,7 +22,11 @@ Argon2id. Because the various formats are recognized on-the-fly your db can can
 have differing hash string formats at the same time, which eases migration to
 newer formats.
 
-This app supports PostgreSQL and MariaDB/MySQL.
+This app primarily supports PostgreSQL and MariaDB/MySQL but the underlying PHP
+[mechanism](https://www.php.net/manual/en/pdo.drivers.php) also supports
+Firebird, MS SQL, Oracle DB, ODBC, DB2, SQLite, Informix and IBM databases. By
+using an appropriate DSN you should be able to connect to these databases. This
+has not been tested, though.
 
 See [CHANGELOG.md](CHANGELOG.md) for changes in newer versions. This app follows
 semantic versioning and there should not be any breaking changes unless the
@@ -42,25 +46,21 @@ This app has no user interface. All configuration is done via Nextcloud's system
 
 ```php
  'user_backend_sql_raw' => array(
-   //'db_type' => 'postgresql',
-   //'db_host' => 'localhost',
-   //'db_port' => '5432',
-   'db_name' => 'theNameOfYourUserDatabase',
-   'db_user' => 'yourDatabaseUser',
-   'db_password' => 'thePasswordForTheDatabaseUser',
-   //'db_password_file' => '/var/secrets/fileContainingThePasswordForTheDatabaseUser',
-   //'mariadb_charset' => 'utf8mb4',
+   'dsn' => 'pgsql:host=/var/run/postgresql;dbname=theNameOfYourUserDb',
+   //'db_user' => 'yourDatabaseUser',
+   //'db_password' => 'thePasswordForTheDatabaseUser',
+   //'db_password_file' => '/path/to/file/ContainingThePasswordForTheDatabaseUser',
    'queries' => array(
-   'get_password_hash_for_user' => 'SELECT password_hash FROM users_fqda WHERE fqda = :username',
-   'user_exists' => 'SELECT EXISTS(SELECT 1 FROM users_fqda WHERE fqda = :username)',
-   'get_users' => 'SELECT fqda FROM users_fqda WHERE (fqda ILIKE :search) OR (display_name ILIKE :search)',
-   //'set_password_hash_for_user' => 'UPDATE users SET password_hash = :new_password_hash WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
-   //'delete_user' => 'DELETE FROM users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
-   //'get_display_name' => 'SELECT display_name FROM users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
-   //'set_display_name' => 'UPDATE users SET display_name = :new_display_name WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
-   //'count_users' => 'SELECT COUNT (*) FROM users',
-   //'get_home' => '',
-   //'create_user' => 'INSERT INTO users (local, domain, password_hash) VALUES (split_part(:username, \'@\', 1), split_part(:username, \'@\', 2), :password_hash)',
+       'get_password_hash_for_user' => 'SELECT password_hash FROM users_fqda WHERE fqda = :username',
+       'user_exists' => 'SELECT EXISTS(SELECT 1 FROM users_fqda WHERE fqda = :username)',
+       'get_users' => 'SELECT fqda FROM users_fqda WHERE (fqda ILIKE :search) OR (display_name ILIKE :search)',
+       //'set_password_hash_for_user' => 'UPDATE users SET password_hash = :new_password_hash WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
+       //'delete_user' => 'DELETE FROM users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
+       //'get_display_name' => 'SELECT display_name FROM users WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
+       //'set_display_name' => 'UPDATE users SET display_name = :new_display_name WHERE local = split_part(:username, \'@\', 1) AND domain = split_part(:username, \'@\', 2)',
+       //'count_users' => 'SELECT COUNT (*) FROM users',
+       //'get_home' => '',
+       //'create_user' => 'INSERT INTO users (local, domain, password_hash) VALUES (split_part(:username, \'@\', 1), split_part(:username, \'@\', 2), :password_hash)',
   ),
  //'hash_algorithm_for_new_passwords' => 'bcrypt',
  ),
@@ -72,26 +72,57 @@ There are three types of configuration parameters:
 
 that *User Backend SQL Raw* will connect to.
 
-| key                | value                                                                                                                    | default value |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| `db_type`          | `postgresql` or `mariadb`                                                                                                | `postgresql`  |
-| `db_host`          | your db host such as `localhost` or `db.example.com` or (only for PostgreSQL) path to socket, e.g. `/var/run/postgresql` | `localhost`   |
-| `db_port`          | your db port                                                                                                             | `5432`        |
-| `db_name`          | your db name                                                                                                             |               |
-| `db_user`          | your db user                                                                                                             |               |
-| `db_password`      | your db password                                                                                                         |               |
-| `db_password_file` | path to file containing the db password                                                                                  |               |
-| `mariadb_charset`  | the charset for mariadb connections                                                                                      | `utf8mb4`     |
-
-* Values without a default value are mandatory, except that
-  * only one of `db_password` or `db_passowrd_file` must be set.
-* Only the first line of the file specified by `db_passowrd_file` is read.
+* `dsn`: check how to construct DSNs for [PostgreSQL](https://www.php.net/manual/en/ref.pdo-pgsql.connection.php) and [MySQL](https://www.php.net/manual/en/ref.pdo-mysql.connection.php).
+* `db_user`: user that will be used to connect to the database
+* `db_password`: password for the user that will be used to connect to the database
+* `db_password_file`: Can be set to read the password from a file
+  * Only the first line of the file specified by `db_password_file` is read.
   * Not more than 100 characters of the first line are read.
-  * Whitespace-like characters are [stripped](https://www.php.net/manual/en/function.trim.php) from
+  * Whitespace-like characters are [trimmed](https://www.php.net/manual/en/function.trim.php) from
     the beginning and end of the read password.
-* If you specify a socket as `db_host` (only for PostgreSQL), you need to put
-  dummy values for the mandatory values, although they are not required for the
-  socket connection. This will be fixed in a future release.
+
+There are two methods to configure the database connection:
+
+1. Set `dsn` to a DSN that contains the entire db connnection configuration including the db user and db password
+2. Set `dsn` to a DSN that contains everything **but** the db user and db password and then set `db_user` and `db_password`/`db_password_file`
+
+PostgreSQL works with method 1 and 2. MySQL works only with method 2. If you use `db_password_file` also set `db_user` (even for PostgreSQL) and don't put the username in the DSN. This is because, the underlying PDO classes have some quirks and diverge from the documented behaviour. So, better don't mix both methods. `db_password_file` has higher priority than `db_password`, but lower priority than password in DSN. But it's better to only set one source for the password, for the same reasons.
+
+#### Examples
+
+* connect to PostgreSQL via a socket with ident authentication which requires no user or password at all:
+
+  ```php
+  'dsn' => 'pgsql:host=/var/run/postgresql;dbname=theNameOfYourUserDb',
+  ```
+
+* connect to PostgreSQL via TCP and user/password authentication:
+  ```php
+  'dsn' => 'pgsql:host=localhost;port=5432;dbname=theNameOfYourUserDb;user=theNameOfYourDbUser;password=thePasswordForTheDbUser',
+  ```
+* connect to PostgreSQL via TCP and user/password authentication and use password file:
+
+  ```php
+  'dsn' => 'pgsql:host=localhost;port=5432;dbname=theNameOfYourUserDb',
+  'db_user' => 'theNameOfYourDbUser',
+  'db_password_file' => '/path/to/password_file',
+  ```
+
+* connect to MySQL via socket which requires no user or password at all:
+
+  ```php
+  'dsn' => 'mysql:unix_socket=/var/run/mysql/mysql.sock;dbname=theNameOfYourUserDb',
+  ```
+  
+* connect to MySQL via TCP and user/password authentication:
+
+  ```php
+  'dsn' => 'mysql:host=localhost;port=3306;dbname=testdb',
+  'db_user' => 'theNameOfYourDbUser',
+  'db_password' => 'thePasswordForTheDbUser', // or db_password_file instead
+  ```
+
+For other databases check their [PDO driver documentation pages](https://www.php.net/manual/en/pdo.drivers.php) which in-turn link to their respective DSN references. They either use method 1 or method 2 AFAICS.
 
 ### 2. SQL Queries
 
@@ -136,8 +167,6 @@ The config values are `md5`, `sha256`, `sha512`, `argon2i`, `argon2id` respectiv
   * This means, that your db can have different hash formats simultaneously. Whenever a
     user's password is changed, it will be updated to the configured hash algorithm. This eases
      migration to more modern algorithms.
-* Argon2i is only supported by PHP 7.2.0 and higher.
-* Argon2id is only supported by PHP 7.3.0 and higher.
 
 ## Security
 
