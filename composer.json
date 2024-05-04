@@ -24,10 +24,10 @@
 		}
 	},
 	"require": {
-		"php": ">=7.0"
+		"php": ">=8.0"
 	},
 	"require-dev": {
-		"php": ">=7.3",
+		"php": ">=8.0",
 		"phpunit/phpunit": "^9"
 	}
 }

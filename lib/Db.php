@@ -21,6 +21,8 @@
 
 namespace OCA\UserBackendSqlRaw;
 
+use OCA\UserBackendSqlRaw\Config;
+use Psr\Log\LoggerInterface;
 use \PDO;
 
 /**
@@ -28,7 +30,7 @@ use \PDO;
  * creation.
  * @package OCA\UserBackendSqlRaw
  */
-abstract class Db
+class Db
 {
     /** @var Config  */
     protected $config;
@@ -48,7 +50,6 @@ abstract class Db
     public function getDbHandle()
     {
         if (is_null($this->dbHandle)) {
-
             $this->dbHandle = $this->createDbHandle();
             // Some methods of the backend are called by Nextcloud in a way that
             // suppresses exceptions, probably to avoid leaking passwords to log
@@ -64,16 +65,25 @@ abstract class Db
     }
 
     /**
-     * Returns a new PDO db handle for the specific db type
+     * Returns a new PDO db handle
      * @return PDO a new PDO object
      */
-    abstract protected function createDbHandle();
+    protected function createDbHandle()
+    {
+        $username = $this->config->getDbUser();
+        $password = $this->config->getDbPassword();
+        $dsn = $this->config->getDsn();
 
-    /**
-     * Returns a Data Source Name (DSN) that is used by a PDO object for
-     * creating the connection to a database. This is db specific.
-     * @return string the DSN string
-     */
-    abstract protected function assembleDsn();
-
+        // The PDO constructor does not seem to be able to handle parameters
+        // with `false` values. Therefore, feeding it here manually all options.
+        if ($username and $password) {
+            return new PDO(dsn: $dsn, username: $username, password: $password);
+        } elseif ($username and !$password) {
+            return new PDO(dsn: $dsn, username: $username);
+        } elseif (!$username and $password) {
+            return new PDO(dsn: $dsn, password: $password);
+        } else {
+            return new PDO($dsn);
+        }
+    }
 }

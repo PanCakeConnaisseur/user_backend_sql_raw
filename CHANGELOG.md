@@ -1,9 +1,20 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [Unreleased]
+
+### Addded
+
+* DSN-based database connection mechanism. This enables support for socket-based database connections and also connections to Firebird, MS SQL, Oracle DB, ODBC, DB2, SQLite, Informix and IBM databases - basically whatever the [PHP PDO-driver](https://www.php.net/manual/en/pdo.drivers.php) supports. But PostgreSQL remains the only tested database and MySQL/MariaDB to some degree. The other databaes should "just work", but this has not been tested.
+* `dsn` configuration key
+* dependancy on PHP >=8.0
+
+### Removed
+
+* **Breaking**: remove configuration keys `db_type`, `db_host`, `db_port`, `db_name`, `mariadb_charset`. These settings must now be included in the DSN string. See [README.md](README.md#1database) on how to do this.
+* support for Nextcloud <26, because Nextcloud 26 is the first to require PHP 8.0, which this app now also requires
+
 
 ## [1.5.1] - 2024-05-01
 

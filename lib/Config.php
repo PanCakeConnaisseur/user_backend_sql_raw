@@ -26,25 +26,14 @@ use \OCP\IConfig;
 
 class Config
 {
-
-    const DEFAULT_DB_TYPE = 'postgresql';
-    const DEFAULT_DB_HOST = 'localhost';
-    const DEFAULT_POSTGRESQL_PORT = '5432';
-    const DEFAULT_MARIADB_PORT = '3306';
-    const DEFAULT_MARIADB_CHARSET = 'utf8mb4';
     const DEFAULT_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'bcrypt';
-
     const MAXIMUM_ALLOWED_PASSWORD_LENGTH = 100;
 
     const CONFIG_KEY = 'user_backend_sql_raw';
-    const CONFIG_KEY_DB_TYPE = 'db_type';
-    const CONFIG_KEY_DB_HOST = 'db_host';
-    const CONFIG_KEY_DB_PORT = 'db_port';
-    const CONFIG_KEY_DB_NAME = 'db_name';
+    const CONFIG_KEY_DSN = 'dsn';
     const CONFIG_KEY_DB_USER = 'db_user';
     const CONFIG_KEY_DB_PASSWORD = 'db_password';
     const CONFIG_KEY_DB_PASSWORD_FILE = 'db_password_file';
-    const CONFIG_KEY_MARIADB_CHARSET = 'mariadb_charset';
     const CONFIG_KEY_HASH_ALGORITHM_FOR_NEW_PASSWORDS = 'hash_algorithm_for_new_passwords';
 
     const CONFIG_KEY_QUERIES = 'queries';
@@ -81,56 +70,29 @@ class Config
                 . self::CONFIG_KEY . ' which should contain the configuration '
                 . 'for the app user_backend_sql_raw.');
         }
+
+        $this->warnAboutObsoleteConfigKeys();
     }
 
-    /**
-     * @return string db type to connect to
-     */
-    public function getDbType()
+    public function warnAboutObsoleteConfigKeys()
     {
-        $dbTypeFromConfig = $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_TYPE
-            , self::DEFAULT_DB_TYPE);
-
-        $normalizedDbType = $this->normalize($dbTypeFromConfig);
-
-        if (!$this->dbTypeIsSupported($normalizedDbType)) {
-            throw new \UnexpectedValueException('The config key '
-                . self::CONFIG_KEY_DB_TYPE . ' is set to ' . $dbTypeFromConfig . '. This '
-                . 'value is invalid. Only postgresql and mariadb are supported.');
+        $obsolete_keys = array("db_type", "db_host", "db_port", "db_name", "mariadb_charset");
+        foreach ($obsolete_keys as $key) {
+            // not using getConfigValueOrFalse() here, because we want to also catch empty strings
+            if (array_key_exists(key: $key, array:$this->appConfiguration)) {
+                $this->logger->warning("The configuration key '{$key}' is obsolete since "
+                    . "version 2.0.0. It has no effect and can be removed.");
+            }
         }
-
-        return $normalizedDbType;
     }
 
     /**
-     * @return string db host to connect to
+     * @return string dsn to use for db connection
+     * @throws \UnexpectedValueException
      */
-    public function getDbHost()
+    public function getDsn()
     {
-        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_HOST
-            , self::DEFAULT_DB_HOST);
-    }
-
-    /**
-     * @return int db port to connect to
-     */
-    public function getDbPort()
-    {
-
-        $defaultPortForCurrentDb = ($this->getDbType() === 'mariadb')
-        ? self::DEFAULT_MARIADB_PORT
-        : self::DEFAULT_POSTGRESQL_PORT;
-
-        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_DB_PORT
-            , $defaultPortForCurrentDb);
-    }
-
-    /**
-     * @return string db name to connect to
-     */
-    public function getDbName()
-    {
-        return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_NAME);
+        return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DSN);
     }
 
     /**
@@ -138,7 +100,13 @@ class Config
      */
     public function getDbUser()
     {
-        return $this->getConfigValueOrThrowException(self::CONFIG_KEY_DB_USER);
+        return $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_USER);
+    }
+
+    // Used instead of getDbPassword() when only needs to check if `db_password`
+    // and not `db_password_file` or password in DSN is set.
+    public function dbPasswordInConfigIsSet() : bool {
+        return $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD) !== false;
     }
 
     /**
@@ -147,24 +115,17 @@ class Config
      */
     public function getDbPassword()
     {
-
         $password = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD);
         $passwordFilePath = $this->getConfigValueOrFalse(self::CONFIG_KEY_DB_PASSWORD_FILE);
 
         $passwordIsSet = $password !== false;
         $passwordFileIsSet = $passwordFilePath !== false;
 
-        if ($passwordIsSet === $passwordFileIsSet) { // expression is a "not XOR"
-            throw new \UnexpectedValueException('Exactly one of ' . self::CONFIG_KEY_DB_PASSWORD . ' or ' . self::CONFIG_KEY_DB_PASSWORD_FILE . ' must be set (not be empty) in the config.');
-        }
-
-        if ($passwordIsSet) {
-            $this->logger->debug("Will use db password specified directly in config.php.");
-            return $password;
-        }
-
+        // Password from file (db_password_file) has higher priority than password from config (db_password).
         if ($passwordFileIsSet) {
-            $this->logger->debug("Will use db password stored in file " . $passwordFilePath) . ".";
+            $this->logger->debug("Will read db password stored in file " . $passwordFilePath)
+            . ". Password from config file will not be considered. Password from DSN still has "
+            ."priority.";
             $error_message_prefix = "Specified db password file with path {$passwordFilePath}";
 
             if (!file_exists($passwordFilePath)) {
@@ -189,17 +150,19 @@ class Config
             fclose($file);
             $this->logger->debug("Successfully read db password from file " . $passwordFilePath) . ".";
             return trim($first_line);
+        } elseif ($passwordIsSet) {
+            $this->logger->debug("Will read db password specified in config.php. Password from file"
+            ." was not specified. Password from DSN still has priority.");
+            return $password;
+        } else {
+            return false;
         }
 
-    }
+        // Priority of password in the DSN over both passwords read here is
+        // implemented in the PDO implementation of PHP. It will simply ignore
+        // the password given as a parameter during PDO object creation and use
+        // the one from the DSN, if the DSN contains it.
 
-    /**
-     * @return string charset for mariadb connection
-     */
-    public function getMariadbCharset()
-    {
-        return $this->getConfigValueOrDefaultValue(self::CONFIG_KEY_MARIADB_CHARSET
-            , self::DEFAULT_MARIADB_CHARSET);
     }
 
     /**
@@ -219,23 +182,6 @@ class Config
                 . 'to ' . $hashAlgorithmFromConfig . '. This value is invalid. Only '
                 . 'md5, sha256, sha512, bcrypt, argon2i and argon2id are supported.');
         }
-
-        if ($normalizedHashAlgorithm === 'argon2i'
-            && version_compare(PHP_VERSION, '7.2.0', '<')) {
-            throw new \UnexpectedValueException(
-                'You specified Argon2i as the hash algorithm for new '
-                . 'passwords. Argon2i is only available in PHP version 7.2.0 and'
-                . ' higher, but your PHP version is ' . PHP_VERSION . '.');
-        }
-
-        if ($normalizedHashAlgorithm === 'argon2id'
-            && version_compare(PHP_VERSION, '7.3.0', '<')) {
-            throw new \UnexpectedValueException(
-                'You specified Argon2id as the hash algorithm for new '
-                . 'passwords. Argon2id is only available in PHP version 7.3.0 and'
-                . ' higher, but your PHP version is ' . PHP_VERSION . '.');
-        }
-
         return $normalizedHashAlgorithm;
     }
 
@@ -288,6 +234,8 @@ class Config
     {
         return $this->getQueryStringOrFalse(self::CONFIG_KEY_CREATE_USER);
     }
+
+
 
     /**
      * Tries to read a config value and throws an exception if it is not set.
@@ -365,16 +313,6 @@ class Config
     }
 
     /**
-     * @param $dbType string db descriptor to check
-     * @return bool whether the db is supported
-     */
-    private function dbTypeIsSupported($dbType)
-    {
-        return $dbType === 'postgresql'
-            || $dbType === 'mariadb';
-    }
-
-    /**
      * Checks whether hash algorithm is supported for writing.
      * @param $hashAlgorithm string hash algorithm descriptor to check
      * @return bool whether hash algorithm is supported
@@ -400,4 +338,5 @@ class Config
     {
         return strtolower(preg_replace("/[-_]/", "", $string));
     }
+
 }

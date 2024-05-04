@@ -28,10 +28,10 @@ class SqliteMemoryTestDb extends Db
 {
     protected function createDbHandle()
     {
-        return new PDO($this->assembleDsn());
+        return new PDO($this->getDsn());
     }
 
-    protected function assembleDsn()
+    protected function getDsn()
     {
         return 'sqlite::memory:';
     }
