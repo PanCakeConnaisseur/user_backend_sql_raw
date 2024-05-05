@@ -1,5 +1,6 @@
 # User Backend SQL Raw
 
+[![Latest Release by Semantic Version)](https://img.shields.io/github/v/release/PanCakeConnaisseur/user_backend_sql_raw?sort=semver)](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases)
 [![Total Downloads](https://img.shields.io/github/downloads/PanCakeConnaisseur/user_backend_sql_raw/total)](https://github.com/PanCakeConnaisseur/user_backend_sql_raw/releases)
 ![Tests Status](https://img.shields.io/github/actions/workflow/status/PanCakeConnaisseur/user_backend_sql_raw/tests.yml?branch=master)
 
