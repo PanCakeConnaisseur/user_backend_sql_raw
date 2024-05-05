@@ -276,7 +276,6 @@ final class ConfigTest extends TestCase
     {
         $expectedDsn = 'pgsql:host=/var/run/postgresql;dbname=theName_OfYourUserDb';
         $expectedPassword = '!me SoSec35?äöß1';
-        // db_type will be left empty to test default value
         $this->nextcloudConfigStub->method('getSystemValue')
             ->willReturn(array(
                 'dsn' => $expectedDsn,
