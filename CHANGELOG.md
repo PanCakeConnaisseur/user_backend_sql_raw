@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2024-05-05
+
+### Fixed
+
+* Update app description in appinfo.xml to reflect new features in 2.0.0.
+
 ## [2.0.0] - 2024-05-05
 
 ### Addded
@@ -12,8 +18,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Removed
 
-* **Breaking**: remove configuration keys `db_type`, `db_host`, `db_port`, `db_name`, `mariadb_charset`. These settings must now be included in the DSN string. See [README.md](README.md#1database) on how to do this.
-* support for Nextcloud <26, because Nextcloud 26 is the first to require PHP 8.0, which this app now also requires
+* **Breaking**: removed configuration keys `db_type`, `db_host`, `db_port`, `db_name`, `mariadb_charset`. These settings must now be included in the DSN string. See [README.md](README.md#1-database) on how to do this.
+* removed support for Nextcloud <26, because Nextcloud 26 is the first to require PHP 8.0, which this app now also requires
 
 
 ## [1.5.1] - 2024-05-01
